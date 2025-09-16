@@ -14,7 +14,8 @@ public class PieceMovesCalculator {
             KingMovesCalculator King = new KingMovesCalculator();
             return King.pieceMoves(board, myPosition, piece);
         } else if (piece.getPieceType() == ChessPiece.PieceType.KNIGHT) {
-            throw new RuntimeException("Not implemented");
+            KnightMovesCalculator Knight = new KnightMovesCalculator();
+            return Knight.pieceMoves(board, myPosition, piece);
         } else if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
             throw new RuntimeException("Not implemented");
         } else if (piece.getPieceType() == ChessPiece.PieceType.QUEEN) {
@@ -90,7 +91,7 @@ class KnightMovesCalculator extends PieceMovesCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
         List<ChessMove> moveList = new ArrayList<>();
         int[][] moveDirections = {{-1, 2}, {-1, -2}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {2, 1}, {2, -1}};
-        for (int[] dir: moveDirections) { // dir[0] rowDirection, dir[1] colDirection
+        for (int[] dir: moveDirections) {
             int newX = myPosition.getRow() + dir[0];
             int newY = myPosition.getColumn() + dir[1];
             if (newX > 0 && newX <= 8 && newY > 0 && newY <= 8) {
