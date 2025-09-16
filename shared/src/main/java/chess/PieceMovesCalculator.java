@@ -98,9 +98,9 @@ class QueenMovesCalculator extends PieceMovesCalculator {
         List<ChessMove> moveList = new ArrayList<>();
         int[][] moveDirections = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}};
         for (int[] dir: moveDirections) { // dir[0] rowDirection, dir[1] colDirection
-            for (int i = )
-                int newX = myPosition.getRow() + dir[0];
-                int newY = myPosition.getColumn() + dir[1];
+            for (int i = 1; i < 8; i++) {
+                int newX = myPosition.getRow() + (i *dir[0]);
+                int newY = myPosition.getColumn() + (i * dir[1]);
                 if (newX > 0 && newX <= 8 && newY > 0 && newY <= 8) {
                     ChessPosition newPosition = new ChessPosition(newX, newY);
                     if (board.getPiece(newPosition) != null) {
@@ -114,6 +114,7 @@ class QueenMovesCalculator extends PieceMovesCalculator {
                 } else {
                     break;
                 }
+            }
         }
         return moveList;
     }
