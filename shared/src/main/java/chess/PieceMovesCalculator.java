@@ -138,9 +138,9 @@ class PawnMovesCalculator extends PieceMovesCalculator {
                         }
                     }
                 } else if (dir[1] == 0 && board.getPiece(newPosition) == null) {
-                    if ((myPosition.getRow() == 2 && dir[0] == 2)) {
+                    if (myPosition.getRow() == 2 && dir[0] == 2 && board.getPiece(new ChessPosition(newX - 1, newY)) == null) {
                         moveList.add(new ChessMove(myPosition, newPosition, null));
-                    } else if (myPosition.getRow() == 7 && dir[0] == -2){
+                    } else if (myPosition.getRow() == 7 && dir[0] == -2 && board.getPiece(new ChessPosition(newX + 1, newY)) == null){
                         moveList.add(new ChessMove(myPosition, newPosition, null));
                     } else if ((dir[0] == 1) || (dir[0] == -1)) {
                         if (color == ChessGame.TeamColor.BLACK && newPosition.getRow() == 1) {
