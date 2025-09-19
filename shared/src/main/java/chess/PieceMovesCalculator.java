@@ -7,26 +7,28 @@ import java.util.List;
 public class PieceMovesCalculator {
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
-        if (piece.getPieceType() == ChessPiece.PieceType.BISHOP) {
-            BishopMovesCalculator Bishop = new BishopMovesCalculator();
-            return Bishop.pieceMoves(board, myPosition, piece);
-        } else if (piece.getPieceType() == ChessPiece.PieceType.KING) {
-            KingMovesCalculator King = new KingMovesCalculator();
-            return King.pieceMoves(board, myPosition, piece);
-        } else if (piece.getPieceType() == ChessPiece.PieceType.KNIGHT) {
-            KnightMovesCalculator Knight = new KnightMovesCalculator();
-            return Knight.pieceMoves(board, myPosition, piece);
-        } else if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
-            PawnMovesCalculator Pawn = new PawnMovesCalculator();
-            return Pawn.pieceMoves(board, myPosition, piece);
-        } else if (piece.getPieceType() == ChessPiece.PieceType.QUEEN) {
-            QueenMovesCalculator Queen = new QueenMovesCalculator();
-            return Queen.pieceMoves(board, myPosition, piece);
-        } else if (piece.getPieceType() == ChessPiece.PieceType.ROOK) {
-            RookMovesCalculator Rook = new RookMovesCalculator();
-            return Rook.pieceMoves(board, myPosition, piece);
+        switch (piece.getPieceType()) {
+            case BISHOP:
+                BishopMovesCalculator Bishop = new BishopMovesCalculator();
+                return Bishop.pieceMoves(board, myPosition, piece);
+            case KING:
+                KingMovesCalculator King = new KingMovesCalculator();
+                return King.pieceMoves(board, myPosition, piece);
+            case KNIGHT:
+                KnightMovesCalculator Knight = new KnightMovesCalculator();
+                return Knight.pieceMoves(board, myPosition, piece);
+            case PAWN:
+                PawnMovesCalculator Pawn = new PawnMovesCalculator();
+                return Pawn.pieceMoves(board, myPosition, piece);
+            case QUEEN:
+                QueenMovesCalculator Queen = new QueenMovesCalculator();
+                return Queen.pieceMoves(board, myPosition, piece);
+            case ROOK:
+                RookMovesCalculator Rook = new RookMovesCalculator();
+                return Rook.pieceMoves(board, myPosition, piece);
+            default:
+                return List.of();
         }
-        return List.of();
     }
 
     public boolean checkDifferentColors(ChessPiece otherPiece, ChessPiece myPiece) {
@@ -158,7 +160,6 @@ class PawnMovesCalculator extends PieceMovesCalculator {
     }
 
     public void makePromotions(Collection<ChessMove> list, ChessPosition oldSpot, ChessPosition newSpot) {
-        System.out.println("promoting");
         list.add(new ChessMove(oldSpot, newSpot, ChessPiece.PieceType.BISHOP));
         list.add(new ChessMove(oldSpot, newSpot, ChessPiece.PieceType.KNIGHT));
         list.add(new ChessMove(oldSpot, newSpot, ChessPiece.PieceType.QUEEN));
