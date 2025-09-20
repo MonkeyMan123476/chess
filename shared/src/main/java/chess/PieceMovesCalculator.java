@@ -131,9 +131,7 @@ class PawnMovesCalculator extends PieceMovesCalculator {
                 ChessPosition newPosition = new ChessPosition(newX, newY);
                 if (dir[1] != 0 && board.getPiece(newPosition) != null) {
                     if (checkDifferentColors(board.getPiece(newPosition), piece)) {
-                        if (color == ChessGame.TeamColor.BLACK && newPosition.getRow() == 1) {
-                            makePromotions(moveList, myPosition, newPosition);
-                        } else if (newPosition.getRow() == 8){
+                        if ((color == ChessGame.TeamColor.BLACK && newPosition.getRow() == 1) || newPosition.getRow() == 8) {
                             makePromotions(moveList, myPosition, newPosition);
                         } else {
                             moveList.add(new ChessMove(myPosition, newPosition, null));
@@ -145,9 +143,7 @@ class PawnMovesCalculator extends PieceMovesCalculator {
                     } else if (myPosition.getRow() == 7 && dir[0] == -2 && board.getPiece(new ChessPosition(newX + 1, newY)) == null){
                         moveList.add(new ChessMove(myPosition, newPosition, null));
                     } else if ((dir[0] == 1) || (dir[0] == -1)) {
-                        if (color == ChessGame.TeamColor.BLACK && newPosition.getRow() == 1) {
-                            makePromotions(moveList, myPosition, newPosition);
-                        } else if (newPosition.getRow() == 8){
+                        if ((color == ChessGame.TeamColor.BLACK && newPosition.getRow() == 1) || newPosition.getRow() == 8) {
                             makePromotions(moveList, myPosition, newPosition);
                         } else {
                             moveList.add(new ChessMove(myPosition, newPosition, null));
