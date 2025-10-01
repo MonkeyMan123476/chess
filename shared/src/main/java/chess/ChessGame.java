@@ -55,7 +55,9 @@ public class ChessGame {
         }
         List<ChessMove> validMoveList = new ArrayList<>();
         for (ChessMove move: getBoard().getPiece(startPosition).pieceMoves(getBoard(), startPosition)) {
-            validMoveList.add(move);
+            if (!willBeInCheck()) {
+                validMoveList.add(move);
+            }
         }
         return validMoveList;
     }
@@ -67,10 +69,12 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        if (myBoard.getPiece(move.getStartPosition()).getTeamColor() != teamTurn) {
+        if (getBoard().getPiece(move.getStartPosition()) == null) {
+            throw new InvalidMoveException("No piece to move");
+        } else if (getBoard().getPiece(move.getStartPosition()).getTeamColor() != getTeamTurn()) {
             throw new InvalidMoveException("Not this team's turn");
         } else if (validMoves(move.getStartPosition()) != null && validMoves(move.getStartPosition()).contains(move)) {
-            movePiece(myBoard.getPiece(move.getStartPosition()), move.getEndPosition(), move.getPromotionPiece());
+            movePiece(getBoard().getPiece(move.getStartPosition()), move.getStartPosition(), move.getEndPosition(), move.getPromotionPiece());
         } else {
             throw new InvalidMoveException("Invalid move");
         }
@@ -125,7 +129,25 @@ public class ChessGame {
         return myBoard;
     }
 
-    public void movePiece(ChessPiece piece, ChessPosition newPosition, ChessPiece.PieceType promotion) {
+    public void movePiece(ChessPiece piece, ChessPosition oldPosition, ChessPosition newPosition, ChessPiece.PieceType promotion) {
+        if (promotion != null) {
+            // Move Pawn
+            getBoard().squares[newPosition.getRow() - 1][newPosition.getColumn() - 1] = new ChessPiece(getTeamTurn(), promotion);
+            getBoard().squares[oldPosition.getRow() - 1][oldPosition.getColumn() - 1] = null;
+        } else {
+            // Move Other Pieces
+            getBoard().squares[newPosition.getRow() - 1][newPosition.getColumn() - 1] = piece;
+            getBoard().squares[oldPosition.getRow() - 1][oldPosition.getColumn() - 1] = null;
+        }
+        // Switch turns
+        if (getTeamTurn() == TeamColor.WHITE) {
+            teamTurn = TeamColor.BLACK;
+        } else {
+            teamTurn = TeamColor.WHITE;
+        }
+    }
 
+    public boolean willBeInCheck() {
+        return false;
     }
 }
