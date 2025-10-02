@@ -186,7 +186,7 @@ public class ChessGame {
     }
 
     public boolean willBeInCheck(ChessMove testMove) {
-        System.out.println("testing if will be in check");
+        System.out.println("testing if " + testMove + "will be in check");
         ChessBoard testBoard = null;
         testBoard = copyBoard();
         if (testMove.getPromotionPiece() != null) {
@@ -198,7 +198,7 @@ public class ChessGame {
             testBoard.squares[testMove.getEndPosition().getRow() - 1][testMove.getEndPosition().getColumn() - 1] = testBoard.getPiece(testMove.getStartPosition());
             testBoard.squares[testMove.getStartPosition().getRow() - 1][testMove.getStartPosition().getColumn() - 1] = null;
         }
-        return canKillKing(testBoard, getTeamTurn());
+        return canKillKing(testBoard, getBoard().getPiece(testMove.getStartPosition()).getTeamColor());
     }
 
     public ChessBoard copyBoard() {
@@ -215,11 +215,13 @@ public class ChessGame {
     }
 
     public boolean canKillKing(ChessBoard checkingBoard, TeamColor teamColor) {
+        System.out.println("my team color: " + teamColor);
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition testPosition = new ChessPosition(row, col);
                 ChessPiece testPiece = checkingBoard.getPiece(testPosition);
                 if (testPiece != null && testPiece.getTeamColor() != teamColor) {
+                    System.out.println("other piece color: " + testPiece.getTeamColor());
                     Collection<ChessMove> potentialMoves = testPiece.pieceMoves(checkingBoard, testPosition);
                     for (ChessMove potentialMove: potentialMoves) {
                         System.out.println("potential move: " + potentialMove);
