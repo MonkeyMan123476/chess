@@ -71,8 +71,6 @@ public class ChessGame {
         List<ChessMove> validMoveList = new ArrayList<>();
         for (ChessMove move: getBoard().getPiece(startPosition).pieceMoves(getBoard(), startPosition)) {
             if (!willBeInCheck(move)) {
-                System.out.println("yeah this move won't put king in check.");
-                System.out.println(move);
                 validMoveList.add(move);
             }
         }
@@ -87,19 +85,14 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         if (getBoard().getPiece(move.getStartPosition()) == null) {
-            System.out.println("No piece to move");
             throw new InvalidMoveException("No piece to move");
         } else if (getBoard().getPiece(move.getStartPosition()).getTeamColor() != getTeamTurn()) {
-            System.out.println("wrong team");
             throw new InvalidMoveException("Not this team's turn");
         } else if (validMoves(move.getStartPosition()) != null && validMoves(move.getStartPosition()).contains(move)) {
-            System.out.println("moving piece");
             movePiece(getBoard().getPiece(move.getStartPosition()), move.getStartPosition(), move.getEndPosition(), move.getPromotionPiece());
         } else if (willBeInCheck(move)){
-            System.out.println("king still in check");
             throw new InvalidMoveException("King may not remain in check");
         } else {
-            System.out.println("nah");
             throw new InvalidMoveException("Invalid move");
         }
     }
@@ -111,7 +104,6 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        System.out.println("testing if in check");
         return canKillKing(myBoard, teamColor);
     }
 
@@ -186,7 +178,6 @@ public class ChessGame {
     }
 
     public boolean willBeInCheck(ChessMove testMove) {
-        System.out.println("testing if " + testMove + "will be in check");
         ChessBoard testBoard = null;
         testBoard = copyBoard();
         if (testMove.getPromotionPiece() != null) {
@@ -215,19 +206,15 @@ public class ChessGame {
     }
 
     public boolean canKillKing(ChessBoard checkingBoard, TeamColor teamColor) {
-        System.out.println("my team color: " + teamColor);
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition testPosition = new ChessPosition(row, col);
                 ChessPiece testPiece = checkingBoard.getPiece(testPosition);
                 if (testPiece != null && testPiece.getTeamColor() != teamColor) {
-                    System.out.println("other piece color: " + testPiece.getTeamColor());
                     Collection<ChessMove> potentialMoves = testPiece.pieceMoves(checkingBoard, testPosition);
                     for (ChessMove potentialMove: potentialMoves) {
-                        System.out.println("potential move: " + potentialMove);
                         ChessPiece killedPiece = checkingBoard.getPiece(potentialMove.getEndPosition());
                         if (killedPiece != null && killedPiece.getPieceType() == ChessPiece.PieceType.KING && killedPiece.getTeamColor() == teamColor) {
-                            System.out.println("this is gonna kill king");
                             return true;
                         }
                     }
