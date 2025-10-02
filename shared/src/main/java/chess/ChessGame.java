@@ -121,7 +121,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        return (canKillKing(myBoard, teamColor) && !anyValidMoves(teamColor));
+        return (canKillKing(myBoard, teamColor) && noValidMoves(teamColor));
     }
 
     /**
@@ -132,20 +132,20 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        return !anyValidMoves(teamColor);
+        return (!isInCheck(teamColor) && noValidMoves(teamColor));
     }
 
-    public boolean anyValidMoves(ChessGame.TeamColor teamColor) {
+    public boolean noValidMoves(ChessGame.TeamColor teamColor) {
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition testPosition = new ChessPosition(row, col);
                 ChessPiece testPiece = getBoard().getPiece(testPosition);
                 if (testPiece != null && testPiece.getTeamColor() == teamColor && !validMoves(testPosition).isEmpty()) {
-                    return true;
+                    return false;
                 }
             }
         }
-        return false;
+        return true;
     }
 
     /**
