@@ -9,23 +9,23 @@ public class PieceMovesCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
         switch (piece.getPieceType()) {
             case BISHOP:
-                BishopMovesCalculator Bishop = new BishopMovesCalculator();
-                return Bishop.pieceMoves(board, myPosition, piece);
+                BishopMovesCalculator bishop = new BishopMovesCalculator();
+                return bishop.pieceMoves(board, myPosition, piece);
             case KING:
-                KingMovesCalculator King = new KingMovesCalculator();
-                return King.pieceMoves(board, myPosition, piece);
+                KingMovesCalculator king = new KingMovesCalculator();
+                return king.pieceMoves(board, myPosition, piece);
             case KNIGHT:
-                KnightMovesCalculator Knight = new KnightMovesCalculator();
-                return Knight.pieceMoves(board, myPosition, piece);
+                KnightMovesCalculator knight = new KnightMovesCalculator();
+                return knight.pieceMoves(board, myPosition, piece);
             case PAWN:
-                PawnMovesCalculator Pawn = new PawnMovesCalculator();
-                return Pawn.pieceMoves(board, myPosition, piece);
+                PawnMovesCalculator pawn = new PawnMovesCalculator();
+                return pawn.pieceMoves(board, myPosition, piece);
             case QUEEN:
-                QueenMovesCalculator Queen = new QueenMovesCalculator();
-                return Queen.pieceMoves(board, myPosition, piece);
+                QueenMovesCalculator queen = new QueenMovesCalculator();
+                return queen.pieceMoves(board, myPosition, piece);
             case ROOK:
-                RookMovesCalculator Rook = new RookMovesCalculator();
-                return Rook.pieceMoves(board, myPosition, piece);
+                RookMovesCalculator rook = new RookMovesCalculator();
+                return rook.pieceMoves(board, myPosition, piece);
             default:
                 return List.of();
         }
