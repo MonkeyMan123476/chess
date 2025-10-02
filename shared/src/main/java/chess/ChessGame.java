@@ -140,9 +140,11 @@ public class ChessGame {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition testPosition = new ChessPosition(row, col);
                 ChessPiece testPiece = getBoard().getPiece(testPosition);
+                if (testPiece != null && testPiece.getTeamColor() == teamColor && !validMoves(testPosition).isEmpty()) {
+                    return true;
+                }
             }
         }
-
         return false;
     }
 
