@@ -55,7 +55,7 @@ public class ChessGame {
         }
         List<ChessMove> validMoveList = new ArrayList<>();
         for (ChessMove move: getBoard().getPiece(startPosition).pieceMoves(getBoard(), startPosition)) {
-            if (!willBeInCheck()) {
+            if (!willBeInCheck(move)) {
                 validMoveList.add(move);
             }
         }
@@ -75,6 +75,8 @@ public class ChessGame {
             throw new InvalidMoveException("Not this team's turn");
         } else if (validMoves(move.getStartPosition()) != null && validMoves(move.getStartPosition()).contains(move)) {
             movePiece(getBoard().getPiece(move.getStartPosition()), move.getStartPosition(), move.getEndPosition(), move.getPromotionPiece());
+        } else if (willBeInCheck(move)){
+            throw new InvalidMoveException("King may not remain in check");
         } else {
             throw new InvalidMoveException("Invalid move");
         }
@@ -149,9 +151,18 @@ public class ChessGame {
         }
     }
 
-    public boolean willBeInCheck() {
+    public boolean willBeInCheck(ChessMove testMove) {
         ChessBoard testBoard = null;
         testBoard = copyBoard();
+        if (testMove.getPromotionPiece() != null) {
+            // Move Pawn
+            testBoard.squares[testMove.getEndPosition().getRow() - 1][testMove.getEndPosition().getColumn() - 1] = new ChessPiece(getTeamTurn(), testMove.getPromotionPiece());
+            testBoard.squares[testMove.getStartPosition().getRow() - 1][testMove.getStartPosition().getColumn() - 1] = null;
+        } else {
+            // Move Other Pieces
+            testBoard.squares[testMove.getEndPosition().getRow() - 1][testMove.getEndPosition().getColumn() - 1] = testBoard.getPiece(testMove.getStartPosition());
+            testBoard.squares[testMove.getStartPosition().getRow() - 1][testMove.getStartPosition().getColumn() - 1] = null;
+        }
         return canKillKing(testBoard, teamTurn);
     }
 
@@ -177,7 +188,7 @@ public class ChessGame {
                     Collection<ChessMove> potentialMoves = testPiece.pieceMoves(checkingBoard, testPosition);
                     for (ChessMove potentialMove: potentialMoves) {
                         ChessPiece killedPiece = checkingBoard.getPiece(potentialMove.getEndPosition());
-                        if (killedPiece.getPieceType() == ChessPiece.PieceType.KING && killedPiece.getTeamColor() != teamColor) {
+                        if (killedPiece != null && killedPiece.getPieceType() == ChessPiece.PieceType.KING && killedPiece.getTeamColor() != teamColor) {
                             return true;
                         }
                     }
