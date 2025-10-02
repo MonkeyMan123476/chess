@@ -14,9 +14,9 @@ import java.util.Objects;
 public class ChessGame {
 
     TeamColor teamTurn = TeamColor.WHITE;
-    ChessBoard myBoard;
+    ChessBoard myBoard = new ChessBoard();
     public ChessGame() {
-
+        this.myBoard.resetBoard();
     }
 
     /**
@@ -111,6 +111,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
+        System.out.println("testing if in check");
         return canKillKing(myBoard, teamColor);
     }
 
@@ -185,6 +186,7 @@ public class ChessGame {
     }
 
     public boolean willBeInCheck(ChessMove testMove) {
+        System.out.println("testing if will be in check");
         ChessBoard testBoard = null;
         testBoard = copyBoard();
         if (testMove.getPromotionPiece() != null) {
