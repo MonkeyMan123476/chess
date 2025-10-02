@@ -12,8 +12,8 @@ import java.util.List;
  */
 public class ChessGame {
 
-    ChessGame.TeamColor teamTurn = TeamColor.WHITE;
-    ChessBoard myBoard = new ChessBoard();
+    TeamColor teamTurn = TeamColor.WHITE;
+    ChessBoard myBoard;
     public ChessGame() {
 
     }
@@ -87,6 +87,8 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
+
+
         return false;
     }
 
@@ -148,6 +150,40 @@ public class ChessGame {
     }
 
     public boolean willBeInCheck() {
+        ChessBoard testBoard = null;
+        testBoard = copyBoard();
+        return canKillKing(testBoard, teamTurn);
+    }
+
+    public ChessBoard copyBoard() {
+        ChessBoard newBoard = new ChessBoard();
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition position = new ChessPosition(row, col);
+                if (myBoard.getPiece(position) != null) {
+                    newBoard.addPiece(position, new ChessPiece(myBoard.getPiece(position).getTeamColor(), (myBoard.getPiece(position).getPieceType())));
+                }
+            }
+        }
+        return newBoard;
+    }
+
+    public boolean canKillKing(ChessBoard checkingBoard, TeamColor teamColor) {
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition testPosition = new ChessPosition(row, col);
+                ChessPiece testPiece = checkingBoard.getPiece(testPosition);
+                if (testPiece != null) {
+                    Collection<ChessMove> potentialMoves = testPiece.pieceMoves(checkingBoard, testPosition);
+                    for (ChessMove potentialMove: potentialMoves) {
+                        ChessPiece killedPiece = checkingBoard.getPiece(potentialMove.getEndPosition());
+                        if (killedPiece.getPieceType() == ChessPiece.PieceType.KING && killedPiece.getTeamColor() != teamColor) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
         return false;
     }
 }
