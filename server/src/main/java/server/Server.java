@@ -1,18 +1,25 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.MemoryDataAccess;
+import datamodel.User;
 import io.javalin.*;
 import io.javalin.http.Context;
+import service.UserService;
+import dataaccess.DataAccess;
 
 import java.util.Map;
 
 public class Server {
 
     private final Javalin server;
+    private UserService userService;
+    private DataAccess dataAccess;
 
     public Server() {
+        dataAccess = new MemoryDataAccess();
+        userService = new UserService(dataAccess);
         server = Javalin.create(config -> config.staticFiles.add("web"));
-
 
         server.delete("db", ctx -> ctx.result("{}"));
         server.post("user", this::register);
@@ -25,10 +32,12 @@ public class Server {
 
     private void register(Context ctx) {
         var serializer = new Gson();
-        var req = serializer.fromJson(ctx.body(), Map.class);
-        req.put("authToken", "cow");
-        var res = serializer.toJson(req);
-        ctx.result(res);
+        String reqJson = ctx.body();
+        var req = serializer.fromJson(reqJson, User.class);
+
+        var res = userService.register(req);
+
+        ctx.result(serializer.toJson(res));
     }
 
     public int run(int desiredPort) {
