@@ -1,8 +1,9 @@
 package dataaccess;
 
-import datamodel.User;
+import datamodel.*;
 
 public interface DataAccess {
-    void saveUser(User user);
-    void getUser(String username);
+    void clear();
+    void saveUser(UserData user);
+    UserData getUser(String username);
 }

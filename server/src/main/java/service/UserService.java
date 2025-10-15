@@ -1,8 +1,8 @@
 package service;
 
 import dataaccess.DataAccess;
-import datamodel.RegistrationResult;
-import datamodel.User;
+import datamodel.AuthData;
+import datamodel.UserData;
 
 public class UserService {
     private DataAccess dataAccess;
@@ -12,8 +12,13 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public RegistrationResult register(User user) {
+    public AuthData register(UserData user) throws Exception {
+        if (dataAccess.getUser(user.username()) != null) {
+            throw new Exception("already exists");
+        }
         dataAccess.saveUser(user);
-        return new RegistrationResult(user.username(), "zyyz");
+        var authData = new AuthData(user.username(), "xyz");
+
+        return authData;
     }
 }
