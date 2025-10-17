@@ -4,6 +4,8 @@ import dataaccess.DataAccess;
 import datamodel.AuthData;
 import datamodel.UserData;
 
+import java.util.UUID;
+
 public class UserService {
     private DataAccess dataAccess;
 
@@ -17,8 +19,12 @@ public class UserService {
             throw new Exception("already exists");
         }
         dataAccess.saveUser(user);
-        var authData = new AuthData(user.username(), "xyz");
+        var authData = new AuthData(user.username(), createAuthToken());
 
         return authData;
+    }
+
+    public String createAuthToken() {
+        return UUID.randomUUID().toString();
     }
 }
