@@ -3,7 +3,7 @@ package dataaccess;
 import datamodel.*;
 
 public interface DataAccess {
-    void clear();
-    void saveUser(UserData user);
-    UserData getUser(String username);
+    void clear() throws DataAccessException;
+    void saveUser(UserData user) throws DataAccessException;
+    UserData getUser(String username) throws DataAccessException;
 }

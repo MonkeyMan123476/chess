@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import datamodel.UserData;
 import io.javalin.*;
@@ -46,4 +47,5 @@ public class Server {
     public void stop() {
         server.stop();
     }
+
 }

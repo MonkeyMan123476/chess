@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DataAccessTest {
 
     @Test
-    void clear() {
+    void clear() throws DataAccessException {
         var user = new UserData("joe", "j@j", "j");
         DataAccess da = new MemoryDataAccess();
         assertNull(da.getUser(user.username()));

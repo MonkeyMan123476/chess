@@ -4,6 +4,7 @@ import dataaccess.DataAccess;
 import datamodel.AuthData;
 import datamodel.UserData;
 
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 public class UserService {
@@ -15,8 +16,11 @@ public class UserService {
     }
 
     public AuthData register(UserData user) throws Exception {
+        if (user.password() == null) {
+            throw new Exception("Error: bad request");
+        }
         if (dataAccess.getUser(user.username()) != null) {
-            throw new Exception("already exists");
+            throw new AccessDeniedException("Error: already taken");
         }
         dataAccess.saveUser(user);
         var authData = new AuthData(user.username(), createAuthToken());
