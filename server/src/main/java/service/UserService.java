@@ -1,10 +1,13 @@
 package service;
 
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import datamodel.AuthData;
 import datamodel.UserData;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.ForbiddenResponse;
+import io.javalin.http.UnauthorizedResponse;
 
-import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 public class UserService {
@@ -15,12 +18,14 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public AuthData register(UserData user) throws Exception {
+    public AuthData register(UserData user) throws DataAccessException {
         if (user.password() == null) {
-            throw new Exception("Error: bad request");
+            System.out.println("no password bruh");
+            throw new BadRequestResponse("Error: bad request");
         }
         if (dataAccess.getUser(user.username()) != null) {
-            throw new AccessDeniedException("Error: already taken");
+            System.out.println("this username is taken bruh");
+            throw new ForbiddenResponse("Error: already taken");
         }
         dataAccess.saveUser(user);
         var authData = new AuthData(user.username(), createAuthToken());
@@ -30,5 +35,19 @@ public class UserService {
 
     public String createAuthToken() {
         return UUID.randomUUID().toString();
+    }
+
+    public AuthData login(UserData user) throws DataAccessException {
+        if (user.password() == null || dataAccess.getUser(user.username()) == null) {
+            System.out.println("either you didn't put your password or your account don't exist bruh");
+            throw new BadRequestResponse("Error: bad request");
+        }
+        var matchedUser = dataAccess.getUser(user.username());
+        if (!user.password().equals(matchedUser.password())) {
+            System.out.println("wrong password bruh");
+            throw new UnauthorizedResponse("Error: unauthorized");
+        }
+        var authData = new AuthData(user.username(), createAuthToken());
+        return authData;
     }
 }
