@@ -8,6 +8,7 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class UserService {
@@ -29,7 +30,7 @@ public class UserService {
         }
         dataAccess.saveUser(user);
         var authData = new AuthData(user.username(), createAuthToken());
-
+        dataAccess.saveAuth(authData);
         return authData;
     }
 
@@ -48,6 +49,16 @@ public class UserService {
             throw new UnauthorizedResponse("Error: unauthorized");
         }
         var authData = new AuthData(user.username(), createAuthToken());
+        dataAccess.saveAuth(authData);
         return authData;
+    }
+
+    public void logout(AuthData auth) throws DataAccessException {
+        System.out.println("trying to logout");
+        if (auth.authToken() == null) {
+            System.out.println("auth don't exist");
+            throw new UnauthorizedResponse("Error: unauthorized");
+        }
+        dataAccess.deleteAuth(auth);
     }
 }
