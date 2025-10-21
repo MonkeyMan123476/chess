@@ -1,7 +1,10 @@
 package dataaccess;
 
+import datamodel.AuthData;
 import datamodel.UserData;
 import org.junit.jupiter.api.*;
+
+import javax.xml.crypto.Data;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,7 +12,7 @@ class DataAccessTest {
 
     @Test
     void clear() throws DataAccessException {
-        var user = new UserData("joe", "j@j", "j@jmail.com");
+        UserData user = new UserData("joe", "j@j", "j@jmail.com");
         DataAccess da = new MemoryDataAccess();
         assertNull(da.getUser(user.username()));
         da.saveUser(user);
@@ -28,10 +31,30 @@ class DataAccessTest {
 
     @Test
     void getUser() throws DataAccessException {
-        var user1 = new UserData("joe", "j@j", "j@jmail.com");
         DataAccess da = new MemoryDataAccess();
         assertNull(da.getUser("joe"));
-        da.saveUser(user1);
+        da.saveUser(new UserData("joe", "j@j", "j@jmail.com"));
         assertNotNull(da.getUser("joe"));
+    }
+
+    @Test
+    void saveAuth() throws DataAccessException {
+        DataAccess da = new MemoryDataAccess();
+        assertNull(da.getAuth("joeAuthToken"));
+        da.saveAuth(new AuthData("joe", "joeAuthToken"));
+        assertNotNull(da.getAuth("joeAuthToken"));
+    }
+
+    @Test
+    void getAuth() throws DataAccessException {
+        DataAccess da = new MemoryDataAccess();
+        assertNull(da.getAuth("joeAuthToken"));
+        da.saveAuth(new AuthData("joe", "joeAuthToken"));
+        assertNotNull(da.getAuth("joeAuthToken"));
+    }
+
+    @Test
+    void deleteAuth() throws DataAccessException {
+
     }
 }

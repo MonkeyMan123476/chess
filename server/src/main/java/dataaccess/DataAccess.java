@@ -8,6 +8,6 @@ public interface DataAccess {
     UserData getUser(String username) throws DataAccessException;
     void saveAuth(AuthData auth) throws DataAccessException;
     AuthData getAuth(String authToken) throws DataAccessException;
-    void deleteAuth(AuthData auth) throws DataAccessException;
+    void deleteAuth(String authToken) throws DataAccessException;
 
 }

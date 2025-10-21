@@ -19,14 +19,18 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
+    public void clear() throws DataAccessException {
+        dataAccess.clear();
+    }
+
     public AuthData register(UserData user) throws DataAccessException {
-        if (user.password() == null) {
-            System.out.println("no password bruh");
-            throw new BadRequestResponse("Error: bad request");
+        if (user.password() == null || user.username() == null || user.password().isEmpty() || user.username().isEmpty()) {
+            System.out.println("you forgor a username or password bruh");
+            throw new BadRequestResponse();
         }
         if (dataAccess.getUser(user.username()) != null) {
             System.out.println("this username is taken bruh");
-            throw new ForbiddenResponse("Error: already taken");
+            throw new ForbiddenResponse();
         }
         dataAccess.saveUser(user);
         var authData = new AuthData(user.username(), createAuthToken());
@@ -39,26 +43,25 @@ public class UserService {
     }
 
     public AuthData login(UserData user) throws DataAccessException {
-        if (user.password() == null || dataAccess.getUser(user.username()) == null) {
-            System.out.println("either you didn't put your password or your account don't exist bruh");
-            throw new BadRequestResponse("Error: bad request");
+        if (user.password() == null || user.username() == null) {
+            System.out.println("you gotta give a username and password bruh");
+            throw new BadRequestResponse();
         }
         var matchedUser = dataAccess.getUser(user.username());
-        if (!user.password().equals(matchedUser.password())) {
-            System.out.println("wrong password bruh");
-            throw new UnauthorizedResponse("Error: unauthorized");
+        if (dataAccess.getUser(user.username()) == null || !user.password().equals(matchedUser.password())) {
+            System.out.println("wrong username or password bruh");
+            throw new UnauthorizedResponse();
         }
         var authData = new AuthData(user.username(), createAuthToken());
         dataAccess.saveAuth(authData);
         return authData;
     }
 
-    public void logout(AuthData auth) throws DataAccessException {
-        System.out.println("trying to logout");
-        if (auth.authToken() == null) {
-            System.out.println("auth don't exist");
-            throw new UnauthorizedResponse("Error: unauthorized");
+    public void logout(String authToken) throws DataAccessException {
+        if (dataAccess.getAuth(authToken) == null) {
+            System.out.println("auth don't exist bruh");
+            throw new UnauthorizedResponse();
         }
-        dataAccess.deleteAuth(auth);
+        dataAccess.deleteAuth(authToken);
     }
 }

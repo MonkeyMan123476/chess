@@ -22,18 +22,22 @@ public class Server {
         userService = new UserService(dataAccess);
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
-        server.delete("db", ctx -> ctx.result("{}"));
+        server.delete("db", this::clear);
+        //server.delete("db", ctx -> ctx.result("{}"));
         server.post("user", this::register);
         server.post("session", this::login);
         server.delete("session", this::logout);
 
         // Register your endpoints and exception handlers here.
-        server.error(403, this::unauthorized);
         server.error(400, this::badRequest);
-
+        server.error(401, this::unauthorized);
+        server.error(403, this::alreadyTaken);
 
     }
 
+    private void clear(Context ctx) throws Exception {
+        userService.clear();
+    }
 
     private void register(Context ctx) throws Exception {
         var serializer = new Gson();
@@ -56,10 +60,9 @@ public class Server {
 
     private void logout(Context ctx) throws Exception {
         var serializer = new Gson();
-        String reqJson = ctx.body();
-        var req = serializer.fromJson(reqJson, AuthData.class);
+        String reqJson = ctx.header("authorization");
+        var req = serializer.fromJson(reqJson, String.class);
         userService.logout(req);
-        //ctx.result(serializer.toJson(res));
     }
 
     public int run(int desiredPort) {
@@ -77,6 +80,10 @@ public class Server {
 
     private void badRequest(Context context) {
         context.json(new Gson().toJson(Map.of("message", "Error: bad request")));
+    }
+
+    private void alreadyTaken(Context context) {
+        context.json(new Gson().toJson(Map.of("message", "Error: already taken")));
     }
 
     private void unauthorized(Context context) {
