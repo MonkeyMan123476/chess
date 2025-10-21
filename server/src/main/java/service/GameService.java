@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import datamodel.AuthData;
@@ -42,7 +43,7 @@ public class GameService {
             throw new BadRequestResponse();
         }
 
-        var gameData = new GameData("1234", game.whiteUsername(), game.blackUsername(), game.gameName());
+        var gameData = new GameData(game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), new ChessGame());
         dataAccess.saveGame(gameData);
         return gameData;
     }
