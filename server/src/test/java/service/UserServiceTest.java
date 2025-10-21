@@ -48,6 +48,17 @@ class UserServiceTest {
 
     @Test
     void logout() throws Exception {
+        MemoryDataAccess da = new MemoryDataAccess();
+        UserService service = new UserService(da);
+        UserData user = new UserData("joe", "j@j", "j");
+        service.register(user);
+        String auth = service.login(user).authToken();
+        assertNotNull(auth);
+        assertEquals(String.class, auth.getClass());
+        assertNotNull(da.getUser(user.username()));
+        service.logout(auth);
+        assertNull(da.getAuth(user.username()));
+        assertThrows(UnauthorizedResponse.class, () -> service.logout(auth));
 
     }
 }
