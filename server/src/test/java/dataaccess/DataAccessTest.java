@@ -55,6 +55,26 @@ class DataAccessTest {
 
     @Test
     void deleteAuth() throws DataAccessException {
+        DataAccess da = new MemoryDataAccess();
+        da.saveAuth(new AuthData("joe", "joeAuthToken"));
+        assertNotNull(da.getAuth("joeAuthToken"));
+        da.deleteAuth("joeAuthToken");
+        assertNull(da.getAuth("joeAuthToken"));
+    }
+
+
+    @Test
+    void listGames() throws DataAccessException {
+
+    }
+
+    @Test
+    void getGame() throws DataAccessException {
+
+    }
+
+    @Test
+    void saveGame() throws DataAccessException {
 
     }
 }

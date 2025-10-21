@@ -3,7 +3,10 @@ package dataaccess;
 import datamodel.GameData;
 import datamodel.UserData;
 import datamodel.AuthData;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MemoryDataAccess implements DataAccess {
     private HashMap<String, UserData> users = new HashMap<>();
@@ -39,5 +42,22 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
         auths.remove(authToken);
+    }
+
+    @Override
+    public List<GameData> listGames(String authToken) throws DataAccessException {
+        List<GameData> gameList = new ArrayList<>();
+        games.forEach((gameID, game) -> gameList.add(game));
+        return gameList;
+    }
+
+    @Override
+    public GameData getGame(String gameID) {
+        return games.get(gameID);
+    }
+
+    @Override
+    public void saveGame(GameData game) {
+        games.put(game.gameID(), game);
     }
 }
