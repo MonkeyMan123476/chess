@@ -77,7 +77,7 @@ public class GameService {
             System.out.println("this color is taken bruh");
             throw new ForbiddenResponse();
         }
-        dataAccess.updateGame(color, gameID, user.username());
+        dataAccess.updateGame(color, gameID, user.username(), gameBeingJoined.game());
     }
 
 }

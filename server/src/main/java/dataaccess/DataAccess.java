@@ -16,5 +16,5 @@ public interface DataAccess {
     GameData getGame(int gameID);
     void saveGame(GameData game);
 
-    void updateGame(ChessGame.TeamColor color, int gameID, String username);
+    void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessGame game);
 }
