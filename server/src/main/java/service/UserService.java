@@ -24,11 +24,9 @@ public class UserService {
 
     public AuthData register(UserData user) throws DataAccessException {
         if (user.password() == null || user.username() == null || user.password().isEmpty() || user.username().isEmpty()) {
-            System.out.println("you forgor a username or password bruh");
             throw new BadRequestResponse();
         }
         if (dataAccess.getUser(user.username()) != null) {
-            System.out.println("this username is taken bruh");
             throw new ForbiddenResponse();
         }
         dataAccess.saveUser(user);
@@ -43,12 +41,10 @@ public class UserService {
 
     public AuthData login(UserData user) throws DataAccessException {
         if (user.password() == null || user.username() == null) {
-            System.out.println("you gotta give a username and password bruh");
             throw new BadRequestResponse();
         }
         var matchedUser = dataAccess.getUser(user.username());
         if (dataAccess.getUser(user.username()) == null || !user.password().equals(matchedUser.password())) {
-            System.out.println("wrong username or password bruh");
             throw new UnauthorizedResponse();
         }
         var authData = new AuthData(user.username(), createAuthToken());
@@ -58,7 +54,6 @@ public class UserService {
 
     public void logout(String authToken) throws DataAccessException {
         if (dataAccess.getAuth(authToken) == null) {
-            System.out.println("auth don't exist bruh");
             throw new UnauthorizedResponse();
         }
         dataAccess.deleteAuth(authToken);

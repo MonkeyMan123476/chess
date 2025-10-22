@@ -62,13 +62,21 @@ class GameServiceTest {
         GameService gameService = new GameService(da);
         UserData user = new UserData("joe", "j@j", "j");
         AuthData auth = service.register(user);
-        assertThrows(UnauthorizedResponse.class, () -> gameService.createGame("bad authToken", new GameData(123, "hello", null, "Fun", new ChessGame())));
+        GameData unauthorizedGameData = new GameData(123, "hello", null, "Fun", new ChessGame());
+        assertThrows(UnauthorizedResponse.class, () -> gameService.createGame("bad authToken", unauthorizedGameData));
         gameService.createGame(auth.authToken(), new GameData(123, "hello", null, "Fun", new ChessGame()));
-        assertThrows(BadRequestResponse.class, () -> gameService.createGame(auth.authToken(), new GameData(123, "hello", null, "", new ChessGame())));
+        GameData badGameData = new GameData(123, "hello", null, "", new ChessGame());
+        assertThrows(BadRequestResponse.class, () -> gameService.createGame(auth.authToken(), badGameData));
     }
 
     @Test
     void joinGameValid() throws Exception {
+        MemoryDataAccess da = new MemoryDataAccess();
+        UserService service = new UserService(da);
+        GameService gameService = new GameService(da);
+        UserData user = new UserData("joe", "j@j", "j");
+        AuthData auth = service.register(user);
+        gameService.createGame(auth.authToken(), new GameData(0, "white", null, "game1", new ChessGame()));
 
     }
 

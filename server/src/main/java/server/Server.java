@@ -1,9 +1,7 @@
 package server;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.MemoryDataAccess;
-import datamodel.AuthData;
 import datamodel.GameData;
 import datamodel.JoinData;
 import datamodel.UserData;
@@ -93,7 +91,6 @@ public class Server {
             newList.add(gameValues);
         }
         var res = Map.of("games", newList);
-        System.out.println(serializer.toJson(res));
         ctx.result(serializer.toJson(res));
     }
 

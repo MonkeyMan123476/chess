@@ -35,6 +35,7 @@ class DataAccessTest {
         assertNull(da.getUser("joe"));
         da.saveUser(new UserData("joe", "j@j", "j@jmail.com"));
         assertNotNull(da.getUser("joe"));
+        assertEquals("j@jmail.com", da.getUser("joe").email());
     }
 
     @Test
@@ -51,6 +52,7 @@ class DataAccessTest {
         assertNull(da.getAuth("joeAuthToken"));
         da.saveAuth(new AuthData("joe", "joeAuthToken"));
         assertNotNull(da.getAuth("joeAuthToken"));
+        assertEquals("joe", da.getAuth("joeAuthToken").username());
     }
 
     @Test

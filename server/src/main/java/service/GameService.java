@@ -11,8 +11,6 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,7 +26,6 @@ public class GameService {
     public List<GameData> listGames(String authToken) throws DataAccessException {
         List<GameData> gameList;
         if (dataAccess.getAuth(authToken) == null) {
-            System.out.println("auth don't exist bruh");
             throw new UnauthorizedResponse();
         }
         gameList = dataAccess.listGames(authToken);
@@ -37,11 +34,9 @@ public class GameService {
 
     public GameData createGame(String authToken, GameData game) throws DataAccessException {
         if (dataAccess.getAuth(authToken) == null) {
-            System.out.println("auth don't exist bruh");
             throw new UnauthorizedResponse();
         }
         if (game.gameName() == null || game.gameName().isEmpty()) {
-            System.out.println("no game name bruh");
             throw new BadRequestResponse();
         }
         GameData gameData;
@@ -59,22 +54,21 @@ public class GameService {
         ChessGame.TeamColor color = joinData.playerColor();
         int gameID = joinData.gameID();
         if (dataAccess.getAuth(authToken) == null) {
-            System.out.println("auth don't exist bruh");
             throw new UnauthorizedResponse();
         }
         AuthData auth = dataAccess.getAuth(authToken);
         if (gameID == 0) {
-            System.out.println("bad game id bruh");
             throw new BadRequestResponse();
         }
         if (!Objects.equals(color, ChessGame.TeamColor.BLACK) && !Objects.equals(color, ChessGame.TeamColor.WHITE)) {
-            System.out.println("bad color bruh");
             throw new BadRequestResponse();
         }
         UserData user = dataAccess.getUser(auth.username());
         GameData gameBeingJoined = dataAccess.getGame(gameID);
-        if ((color.equals(ChessGame.TeamColor.BLACK) && gameBeingJoined.blackUsername() != null ) || (color.equals(ChessGame.TeamColor.WHITE) && gameBeingJoined.whiteUsername() != null)) {
-            System.out.println("this color is taken bruh");
+        if (color.equals(ChessGame.TeamColor.BLACK) && gameBeingJoined.blackUsername() != null ) {
+            throw new ForbiddenResponse();
+        }
+        if (color.equals(ChessGame.TeamColor.WHITE) && gameBeingJoined.whiteUsername() != null) {
             throw new ForbiddenResponse();
         }
         dataAccess.updateGame(color, gameID, user.username(), gameBeingJoined.game());
