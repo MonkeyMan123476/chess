@@ -56,11 +56,8 @@ public class GameService {
     }
 
     public void joinGame(String authToken, JoinData joinData) throws DataAccessException {
-        System.out.println(authToken);
         ChessGame.TeamColor color = joinData.playerColor();
         int gameID = joinData.gameID();
-        System.out.println(dataAccess.getGame(gameID).blackUsername());
-        System.out.println(dataAccess.getGame(gameID).whiteUsername());
         if (dataAccess.getAuth(authToken) == null) {
             System.out.println("auth don't exist bruh");
             throw new UnauthorizedResponse();
@@ -76,13 +73,11 @@ public class GameService {
         }
         UserData user = dataAccess.getUser(auth.username());
         GameData gameBeingJoined = dataAccess.getGame(gameID);
-        if ((color.equals(ChessGame.TeamColor.BLACK) && gameBeingJoined.blackUsername() != null) || (color.equals(ChessGame.TeamColor.WHITE) && gameBeingJoined.whiteUsername() != null)) {
+        if ((color.equals(ChessGame.TeamColor.BLACK) && gameBeingJoined.blackUsername() != null ) || (color.equals(ChessGame.TeamColor.WHITE) && gameBeingJoined.whiteUsername() != null)) {
             System.out.println("this color is taken bruh");
             throw new ForbiddenResponse();
         }
         dataAccess.updateGame(color, gameID, user.username());
-        System.out.println(dataAccess.getGame(gameID).blackUsername());
-        System.out.println(dataAccess.getGame(gameID).whiteUsername());
     }
 
 }

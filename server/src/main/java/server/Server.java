@@ -42,11 +42,13 @@ public class Server {
         server.error(400, this::badRequest);
         server.error(401, this::unauthorized);
         server.error(403, this::alreadyTaken);
+        server.error(500, this::error);
 
     }
 
     private void clear(Context ctx) throws Exception {
         userService.clear();
+        ctx.result("{}");
     }
 
     private void register(Context ctx) throws Exception {
@@ -73,6 +75,7 @@ public class Server {
         String reqJson = ctx.header("authorization");
         var req = serializer.fromJson(reqJson, String.class);
         userService.logout(req);
+        ctx.result("{}");
     }
 
     private void listGames(Context ctx) throws Exception {
@@ -82,11 +85,11 @@ public class Server {
         var resList = gameService.listGames(req);
         List<Map<String, Object>> newList = new ArrayList<>();
         for (GameData gameData : resList) {
-            newList.add(Map.of(
-                    "gameID", gameData.gameID(),
-                    "whiteUsername", gameData.whiteUsername(),
-                    "blackUsername", gameData.blackUsername(),
-                    "gameName", gameData.gameName()));
+            Map<String, Object> gameValues = new HashMap<>();
+            gameValues.put("gameID", gameData.gameID());
+            gameValues.put("whiteUsername", gameData.whiteUsername());
+            gameValues.put("gameName", gameData.gameName());
+            newList.add(gameValues);
         }
         var res = Map.of("games", newList);
         System.out.println(serializer.toJson(res));
@@ -108,6 +111,7 @@ public class Server {
         String reqGameJson = ctx.body();
         var reqGame = serializer.fromJson(reqGameJson, JoinData.class);
         gameService.joinGame(reqAuth, reqGame);
+        ctx.result("{}");
     }
 
     public int run(int desiredPort) {
@@ -135,5 +139,7 @@ public class Server {
         context.json(new Gson().toJson(Map.of("message", "Error: unauthorized")));
     }
 
-
+    private void error(Context context) {
+        context.json(new Gson().toJson(Map.of("message", "Error:")));
+    }
 }

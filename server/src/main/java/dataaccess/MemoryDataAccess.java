@@ -8,6 +8,7 @@ import datamodel.AuthData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class MemoryDataAccess implements DataAccess {
     private HashMap<String, UserData> users = new HashMap<>();
@@ -51,12 +52,6 @@ public class MemoryDataAccess implements DataAccess {
         List<GameData> gameList = new ArrayList<>();
         //games.forEach((gameID, game) -> gameList.add(game));
         for (HashMap.Entry<Integer, GameData> game : games.entrySet()) {
-            if (game.getValue().blackUsername() == null) {
-                game.setValue(new GameData(game.getValue().gameID(), game.getValue().whiteUsername(), "null", game.getValue().gameName(), game.getValue().game()));
-            }
-            if (game.getValue().whiteUsername() == null) {
-                game.setValue(new GameData(game.getValue().gameID(), "null", game.getValue().blackUsername(), game.getValue().gameName(), game.getValue().game()));
-            }
             gameList.add(game.getValue());
         }
         return gameList;

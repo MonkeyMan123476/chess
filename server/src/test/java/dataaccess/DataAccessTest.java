@@ -77,4 +77,9 @@ class DataAccessTest {
     void saveGame() throws DataAccessException {
 
     }
+
+    @Test
+    void updateGame() throws DataAccessException {
+
+    }
 }
