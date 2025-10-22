@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import datamodel.GameData;
 import datamodel.UserData;
 import datamodel.AuthData;
@@ -11,12 +12,13 @@ import java.util.List;
 public class MemoryDataAccess implements DataAccess {
     private HashMap<String, UserData> users = new HashMap<>();
     private HashMap<String, AuthData> auths = new HashMap<>();
-    private HashMap<String, GameData> games = new HashMap<>();
+    private HashMap<Integer, GameData> games = new HashMap<>();
 
     @Override
     public void clear() {
         users.clear();
         auths.clear();
+        games.clear();
     }
 
     @Override
@@ -47,17 +49,37 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public List<GameData> listGames(String authToken) throws DataAccessException {
         List<GameData> gameList = new ArrayList<>();
-        games.forEach((gameID, game) -> gameList.add(game));
+        //games.forEach((gameID, game) -> gameList.add(game));
+        for (HashMap.Entry<Integer, GameData> game : games.entrySet()) {
+            if (game.getValue().blackUsername() == null) {
+                game.setValue(new GameData(game.getValue().gameID(), game.getValue().whiteUsername(), "null", game.getValue().gameName(), game.getValue().game()));
+            }
+            if (game.getValue().whiteUsername() == null) {
+                game.setValue(new GameData(game.getValue().gameID(), "null", game.getValue().blackUsername(), game.getValue().gameName(), game.getValue().game()));
+            }
+            gameList.add(game.getValue());
+        }
         return gameList;
     }
 
     @Override
-    public GameData getGame(String gameID) {
+    public GameData getGame(int gameID) {
         return games.get(gameID);
     }
 
     @Override
     public void saveGame(GameData game) {
         games.put(game.gameID(), game);
+    }
+
+    @Override
+    public void updateGame(ChessGame.TeamColor color, int gameID, String username) {
+        GameData oldGameVersion = games.get(gameID);
+        if (color == ChessGame.TeamColor.WHITE) {
+            games.put(gameID, new GameData(gameID, username, oldGameVersion.blackUsername(), oldGameVersion.gameName(), oldGameVersion.game()));
+        }
+        if (color == ChessGame.TeamColor.BLACK) {
+            games.put(gameID, new GameData(gameID, oldGameVersion.whiteUsername(), username, oldGameVersion.gameName(), oldGameVersion.game()));
+        }
     }
 }

@@ -1,15 +1,20 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.MemoryDataAccess;
 import datamodel.AuthData;
 import datamodel.GameData;
+import datamodel.JoinData;
 import datamodel.UserData;
 import io.javalin.*;
 import io.javalin.http.Context;
 import service.*;
 import dataaccess.DataAccess;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Server {
@@ -74,26 +79,34 @@ public class Server {
         var serializer = new Gson();
         String reqJson = ctx.header("authorization");
         var req = serializer.fromJson(reqJson, String.class);
-        var res = gameService.listGames(req);
+        var resList = gameService.listGames(req);
+        List<Map<String, Object>> newList = new ArrayList<>();
+        for (GameData gameData : resList) {
+            newList.add(Map.of(
+                    "gameID", gameData.gameID(),
+                    "whiteUsername", gameData.whiteUsername(),
+                    "blackUsername", gameData.blackUsername(),
+                    "gameName", gameData.gameName()));
+        }
+        var res = Map.of("games", newList);
+        System.out.println(serializer.toJson(res));
         ctx.result(serializer.toJson(res));
     }
 
     private void createGame(Context ctx) throws Exception {
         var serializer = new Gson();
-        String reqAuthJson = ctx.header("authorization");
+        String reqAuth = ctx.header("authorization");
         String reqGameJson = ctx.body();
-        var reqAuth = serializer.fromJson(reqAuthJson, String.class);
         var reqGame = serializer.fromJson(reqGameJson, GameData.class);
-        var res = gameService.createGame(reqAuth, reqGame);
+        var res = Map.of("gameID", gameService.createGame(reqAuth, reqGame).gameID());
         ctx.result(serializer.toJson(res));
     }
 
     private void joinGame(Context ctx) throws Exception {
         var serializer = new Gson();
-        String reqAuthJson = ctx.header("authorization");
+        String reqAuth = ctx.header("authorization");
         String reqGameJson = ctx.body();
-        var reqAuth = serializer.fromJson(reqAuthJson, String.class);
-        var reqGame = serializer.fromJson(reqGameJson, GameData.class);
+        var reqGame = serializer.fromJson(reqGameJson, JoinData.class);
         gameService.joinGame(reqAuth, reqGame);
     }
 

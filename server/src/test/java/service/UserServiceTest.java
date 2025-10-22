@@ -1,9 +1,10 @@
 package service;
 
+import chess.ChessGame;
+import dataaccess.DataAccessException;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import datamodel.*;
 import dataaccess.MemoryDataAccess;
@@ -13,8 +14,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserServiceTest {
 
     @Test
-    void clear() {
-
+    void clear() throws DataAccessException {
+        MemoryDataAccess da = new MemoryDataAccess();
+        UserService userService = new UserService(da);
+        GameService gameService = new GameService(da);
+        UserData user = new UserData("joe", "j@j", "j");
+        AuthData auth = userService.register(user);
+        assertNotNull(da.getUser(user.username()));
+        assertNotNull(da.getAuth(auth.authToken()));
+        gameService.createGame(auth.authToken(), new GameData(123, null, null, "Fun", new ChessGame()));
+        assertNotNull(da.getGame(123));
+        userService.clear();
+        assertNull(da.getUser(user.username()));
+        assertNull(da.getAuth(auth.authToken()));
+        assertNull(da.getGame(123));
     }
 
     @Test
