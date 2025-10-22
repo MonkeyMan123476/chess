@@ -52,6 +52,8 @@ public class MemoryDataAccess implements DataAccess {
         List<GameData> gameList = new ArrayList<>();
         //games.forEach((gameID, game) -> gameList.add(game));
         for (HashMap.Entry<Integer, GameData> game : games.entrySet()) {
+            System.out.println("white: " + game.getValue().whiteUsername());
+            System.out.println("black: " + game.getValue().blackUsername());
             gameList.add(game.getValue());
         }
         return gameList;

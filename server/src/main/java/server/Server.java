@@ -88,6 +88,7 @@ public class Server {
             Map<String, Object> gameValues = new HashMap<>();
             gameValues.put("gameID", gameData.gameID());
             gameValues.put("whiteUsername", gameData.whiteUsername());
+            gameValues.put("blackUsername", gameData.blackUsername());
             gameValues.put("gameName", gameData.gameName());
             newList.add(gameValues);
         }
