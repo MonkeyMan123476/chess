@@ -35,9 +35,11 @@ public class PieceMovesCalculator {
         return otherPiece.getTeamColor() != myPiece.getTeamColor();
     }
 
-    public void ifOpenAddSingle(ChessBoard board, ChessPosition myPosition, ChessPiece piece, Collection<ChessMove> moves, int x, int y) {
-        if (x > 0 && x <= 8 && y > 0 && y <= 8) {
-            ChessPosition newPosition = new ChessPosition(x, y);
+    public void ifOpenAddSingle(ChessBoard board, ChessPosition myPosition, ChessPiece piece, Collection<ChessMove> moves, int[] direction) {
+        int newX = myPosition.getRow() + direction[0];
+        int newY = myPosition.getColumn() + direction[1];
+        if (newX > 0 && newX <= 8 && newY > 0 && newY <= 8) {
+            ChessPosition newPosition = new ChessPosition(newX, newY);
             if (board.getPiece(newPosition) != null) {
                 if (checkDifferentColors(board.getPiece(newPosition), piece)) {
                     moves.add(new ChessMove(myPosition, newPosition, null));
@@ -71,7 +73,6 @@ public class PieceMovesCalculator {
 
 
 class BishopMovesCalculator extends PieceMovesCalculator {
-
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
         List<ChessMove> moveList = new ArrayList<>();
@@ -89,9 +90,7 @@ class KingMovesCalculator extends PieceMovesCalculator {
         List<ChessMove> moveList = new ArrayList<>();
         int[][] kingMoveDirections = {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}};
         for (int[] dir: kingMoveDirections) {
-            int newX = myPosition.getRow() + dir[0];
-            int newY = myPosition.getColumn() + dir[1];
-            ifOpenAddSingle(board, myPosition, piece, moveList, newX, newY);
+            ifOpenAddSingle(board, myPosition, piece, moveList, dir);
         }
         return moveList;
     }
@@ -103,9 +102,7 @@ class KnightMovesCalculator extends PieceMovesCalculator {
         List<ChessMove> moveList = new ArrayList<>();
         int[][] knightMoveDirections = {{-1, 2}, {-1, -2}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {2, 1}, {2, -1}};
         for (int[] dir: knightMoveDirections) {
-            int newX = myPosition.getRow() + dir[0];
-            int newY = myPosition.getColumn() + dir[1];
-            ifOpenAddSingle(board, myPosition, piece, moveList, newX, newY);
+            ifOpenAddSingle(board, myPosition, piece, moveList, dir);
         }
         return moveList;
     }
@@ -130,11 +127,7 @@ class PawnMovesCalculator extends PieceMovesCalculator {
                 ChessPosition newPosition = new ChessPosition(newX, newY);
                 if (dir[1] != 0 && board.getPiece(newPosition) != null) {
                     if (checkDifferentColors(board.getPiece(newPosition), piece)) {
-                        if ((color == ChessGame.TeamColor.BLACK && newPosition.getRow() == 1) || newPosition.getRow() == 8) {
-                            makePromotions(moveList, myPosition, newPosition);
-                        } else {
-                            moveList.add(new ChessMove(myPosition, newPosition, null));
-                        }
+                        addPawnMove(myPosition, newPosition, color, moveList);
                     }
                 } else if (dir[1] == 0 && board.getPiece(newPosition) == null) {
                     if (myPosition.getRow() == 2 && dir[0] == 2 && board.getPiece(new ChessPosition(newX - 1, newY)) == null) {
@@ -142,11 +135,7 @@ class PawnMovesCalculator extends PieceMovesCalculator {
                     } else if (myPosition.getRow() == 7 && dir[0] == -2 && board.getPiece(new ChessPosition(newX + 1, newY)) == null){
                         moveList.add(new ChessMove(myPosition, newPosition, null));
                     } else if ((dir[0] == 1) || (dir[0] == -1)) {
-                        if ((color == ChessGame.TeamColor.BLACK && newPosition.getRow() == 1) || newPosition.getRow() == 8) {
-                            makePromotions(moveList, myPosition, newPosition);
-                        } else {
-                            moveList.add(new ChessMove(myPosition, newPosition, null));
-                        }
+                        addPawnMove(myPosition, newPosition, color, moveList);
                     }
                 }
             }
@@ -159,6 +148,14 @@ class PawnMovesCalculator extends PieceMovesCalculator {
         list.add(new ChessMove(oldSpot, newSpot, ChessPiece.PieceType.KNIGHT));
         list.add(new ChessMove(oldSpot, newSpot, ChessPiece.PieceType.QUEEN));
         list.add(new ChessMove(oldSpot, newSpot, ChessPiece.PieceType.ROOK));
+    }
+
+    public void addPawnMove(ChessPosition myPosition, ChessPosition newPosition, ChessGame.TeamColor color, Collection<ChessMove> moves) {
+        if ((color == ChessGame.TeamColor.BLACK && newPosition.getRow() == 1) || newPosition.getRow() == 8) {
+            makePromotions(moves, myPosition, newPosition);
+        } else {
+            moves.add(new ChessMove(myPosition, newPosition, null));
+        }
     }
 }
 
