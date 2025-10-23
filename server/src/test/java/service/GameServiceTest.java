@@ -4,8 +4,10 @@ import chess.ChessGame;
 import dataaccess.MemoryDataAccess;
 import datamodel.AuthData;
 import datamodel.GameData;
+import datamodel.JoinData;
 import datamodel.UserData;
 import io.javalin.http.BadRequestResponse;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import org.junit.jupiter.api.Test;
 
@@ -77,11 +79,22 @@ class GameServiceTest {
         UserData user = new UserData("joe", "j@j", "j");
         AuthData auth = service.register(user);
         gameService.createGame(auth.authToken(), new GameData(0, "white", null, "game1", new ChessGame()));
-
+        assertNotNull(da.getGame(1).whiteUsername());
+        assertNull(da.getGame(1).blackUsername());
+        gameService.joinGame(auth.authToken(), new JoinData(ChessGame.TeamColor.BLACK, 1));
+        assertEquals("joe", da.getGame(1).blackUsername());
     }
 
     @Test
     void joinGameInvalid() throws Exception {
-
+        MemoryDataAccess da = new MemoryDataAccess();
+        UserService service = new UserService(da);
+        GameService gameService = new GameService(da);
+        UserData user = new UserData("joe", "j@j", "j");
+        AuthData auth = service.register(user);
+        gameService.createGame(auth.authToken(), new GameData(0, "white", null, "game1", new ChessGame()));
+        assertThrows(UnauthorizedResponse.class, () -> gameService.joinGame(null, new JoinData(ChessGame.TeamColor.BLACK, 1)));
+        assertThrows(BadRequestResponse.class, () -> gameService.joinGame(auth.authToken(), new JoinData(null, 1)));
+        assertThrows(ForbiddenResponse.class, () -> gameService.joinGame(auth.authToken(), new JoinData(ChessGame.TeamColor.WHITE, 1)));
     }
 }

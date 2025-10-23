@@ -32,22 +32,22 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void saveAuth(AuthData auth) throws DataAccessException {
+    public void saveAuth(AuthData auth) {
         auths.put(auth.authToken(), auth);
     }
 
     @Override
-    public AuthData getAuth(String authToken) throws DataAccessException {
+    public AuthData getAuth(String authToken) {
         return auths.get(authToken);
     }
 
     @Override
-    public void deleteAuth(String authToken) throws DataAccessException {
+    public void deleteAuth(String authToken) {
         auths.remove(authToken);
     }
 
     @Override
-    public List<GameData> listGames(String authToken) throws DataAccessException {
+    public List<GameData> listGames(String authToken) {
         List<GameData> gameList = new ArrayList<>();
         for (HashMap.Entry<Integer, GameData> game : games.entrySet()) {
             gameList.add(game.getValue());

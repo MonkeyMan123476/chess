@@ -13,8 +13,7 @@ public interface DataAccess {
     AuthData getAuth(String authToken) throws DataAccessException;
     void deleteAuth(String authToken) throws DataAccessException;
     List<GameData> listGames(String authToken) throws DataAccessException;
-    GameData getGame(int gameID);
-    void saveGame(GameData game);
-
-    void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessGame game);
+    GameData getGame(int gameID) throws DataAccessException;
+    void saveGame(GameData game) throws DataAccessException;
+    void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessGame game) throws DataAccessException;
 }

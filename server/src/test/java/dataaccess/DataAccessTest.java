@@ -1,6 +1,8 @@
 package dataaccess;
 
+import chess.ChessGame;
 import datamodel.AuthData;
+import datamodel.GameData;
 import datamodel.UserData;
 import org.junit.jupiter.api.*;
 
@@ -67,21 +69,41 @@ class DataAccessTest {
 
     @Test
     void listGames() throws DataAccessException {
-
+        DataAccess da = new MemoryDataAccess();
+        da.saveAuth(new AuthData("joe", "joeAuthToken"));
+        GameData game1 = new GameData(111, "white", "black", "testGame1", new ChessGame());
+        GameData game2 = new GameData(222, "white", "black", "testGame1", new ChessGame());
+        da.saveGame(game1);
+        da.saveGame(game2);
+        assertTrue(da.listGames("joeAuthToken").contains(game1));
+        assertTrue(da.listGames("joeAuthToken").contains(game2));
     }
 
     @Test
     void getGame() throws DataAccessException {
-
+        DataAccess da = new MemoryDataAccess();
+        assertNull(da.getGame(333));
+        da.saveGame(new GameData(333, "white", "black", "testGame", new ChessGame()));
+        assertNotNull(da.getGame(333));
+        assertEquals("testGame", da.getGame(333).gameName());
     }
 
     @Test
     void saveGame() throws DataAccessException {
-
+        DataAccess da = new MemoryDataAccess();
+        assertNull(da.getGame(333));
+        da.saveGame(new GameData(333, "white", "black", "testGame", new ChessGame()));
+        assertNotNull(da.getGame(333));
     }
 
     @Test
     void updateGame() throws DataAccessException {
-
+        DataAccess da = new MemoryDataAccess();
+        da.saveAuth(new AuthData("joe", "joeAuthToken"));
+        GameData testGame = new GameData(111, "white", null, "testGame1", new ChessGame());
+        da.saveGame(testGame);
+        assertNull(da.getGame(111).blackUsername());
+        da.updateGame(ChessGame.TeamColor.BLACK, 111, "joe", new ChessGame());
+        assertEquals("joe", da.getGame(111).blackUsername());
     }
 }
