@@ -7,6 +7,7 @@ import datamodel.UserData;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.UUID;
 
@@ -29,6 +30,9 @@ public class UserService {
         if (dataAccess.getUser(user.username()) != null) {
             throw new ForbiddenResponse();
         }
+        var hashPwd = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+        var storeUser = new UserData(user.username(), hashPwd, user.email());
+        dataAccess.saveUser(storeUser);
         dataAccess.saveUser(user);
         var authData = new AuthData(user.username(), createAuthToken());
         dataAccess.saveAuth(authData);

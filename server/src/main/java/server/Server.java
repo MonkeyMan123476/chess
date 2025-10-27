@@ -18,14 +18,14 @@ import java.util.Map;
 public class Server {
 
     private final Javalin server;
-    private UserService userService;
-    private GameService gameService;
-    private DataAccess dataAccess;
+    private final UserService userService;
+    private final GameService gameService;
+    private final DataAccess dataAccess;
 
     public Server() {
         dataAccess = new MemoryDataAccess();
-        userService = new UserService(dataAccess);
-        gameService = new GameService(dataAccess);
+        this.userService = new UserService(dataAccess);
+        this.gameService = new GameService(dataAccess);
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
         server.delete("db", this::clear);
