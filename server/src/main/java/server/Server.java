@@ -1,14 +1,15 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.MemoryDataAccess;
 import datamodel.GameData;
 import datamodel.JoinData;
 import datamodel.UserData;
 import io.javalin.*;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
 import service.*;
-import dataaccess.DataAccess;
+import dataaccess.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,13 +24,25 @@ public class Server {
     private final DataAccess dataAccess;
 
     public Server() {
-        dataAccess = new MemoryDataAccess();
+        server = Javalin.create(config -> config.staticFiles.add("web"));
+        try {
+            dataAccess = new MySqlDataAccess();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize DataAccess", e);
+        }
         this.userService = new UserService(dataAccess);
         this.gameService = new GameService(dataAccess);
-        server = Javalin.create(config -> config.staticFiles.add("web"));
 
         server.delete("db", this::clear);
-        server.post("user", this::register);
+        server.post("user", ctx -> {
+            try {
+                register(ctx);
+            } catch (BadRequestResponse r) {
+                badRequest(ctx);
+            } catch (ForbiddenResponse r) {
+                alreadyTaken(ctx);
+            }
+        });
         server.post("session", this::login);
         server.delete("session", this::logout);
         server.get("game", this::listGames);
@@ -126,18 +139,22 @@ public class Server {
     // Error types
 
     private void badRequest(Context context) {
+        context.status(400);
         context.json(new Gson().toJson(Map.of("message", "Error: bad request")));
     }
 
     private void alreadyTaken(Context context) {
+        context.status(403);
         context.json(new Gson().toJson(Map.of("message", "Error: already taken")));
     }
 
     private void unauthorized(Context context) {
+        context.status(401);
         context.json(new Gson().toJson(Map.of("message", "Error: unauthorized")));
     }
 
     private void error(Context context) {
+        context.status(500);
         context.json(new Gson().toJson(Map.of("message", "Error:")));
     }
 }
