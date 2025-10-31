@@ -30,10 +30,8 @@ public class UserService {
         if (dataAccess.getUser(user.username()) != null) {
             throw new ForbiddenResponse();
         }
-        var hashPwd = BCrypt.hashpw(user.password(), BCrypt.gensalt());
-        var storeUser = new UserData(user.username(), hashPwd, user.email());
-        dataAccess.saveUser(storeUser);
-        dataAccess.saveUser(user);
+        dataAccess.saveUser(new UserData(user.username(), hashPassword(user.password()), user.email()));
+        //dataAccess.saveUser(user);
         var authData = new AuthData(user.username(), createAuthToken());
         dataAccess.saveAuth(authData);
         return authData;
@@ -48,7 +46,7 @@ public class UserService {
             throw new BadRequestResponse();
         }
         var matchedUser = dataAccess.getUser(user.username());
-        if (dataAccess.getUser(user.username()) == null || !user.password().equals(matchedUser.password())) {
+        if (dataAccess.getUser(user.username()) == null || !BCrypt.checkpw(user.password(), matchedUser.password())) {
             throw new UnauthorizedResponse();
         }
         var authData = new AuthData(user.username(), createAuthToken());
@@ -61,5 +59,9 @@ public class UserService {
             throw new UnauthorizedResponse();
         }
         dataAccess.deleteAuth(authToken);
+    }
+
+    private String hashPassword(String password) {
+        return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 }
