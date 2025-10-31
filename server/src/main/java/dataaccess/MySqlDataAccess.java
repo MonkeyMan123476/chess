@@ -163,7 +163,6 @@ public class MySqlDataAccess implements DataAccess {
                 ps.setString(3, game.blackUsername());
                 ps.setString(4, game.gameName());
                 var serializer = new Gson();
-                System.out.println(serializer.toJson(game.game()).length());
                 ps.setString(5, serializer.toJson(game.game()));
                 ps.executeUpdate();
             }
@@ -174,7 +173,37 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessGame game) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            if (color == ChessGame.TeamColor.WHITE) {
+                var whiteJoinStatement = "UPDATE games SET whiteUsername=? WHERE gameID=?";
+                addUsername(conn, whiteJoinStatement, username, gameID);
+            }
+            if (color == ChessGame.TeamColor.BLACK) {
+                var blackJoinStatement = "UPDATE games SET blackUsername=? WHERE gameID=?";
+                addUsername(conn, blackJoinStatement, username, gameID);
+            }
+            var updateGameStatement = "UPDATE games SET game=? WHERE gameID=?";
+            try (PreparedStatement ps = conn.prepareStatement(updateGameStatement)) {
+                ChessGame currentGame = getGame(gameID).game();
+                // Update ChessGame state?? somehow
+                var serializer = new Gson();
+                ps.setString(1, serializer.toJson(currentGame));
+                ps.setInt(2, gameID);
+                ps.executeUpdate();
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
+    }
 
+    private void addUsername(Connection conn, String statement, String username, int gameID) throws DataAccessException {
+        try (PreparedStatement ps = conn.prepareStatement(statement)) {
+            ps.setString(1, username);
+            ps.setInt(2, gameID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
     }
 
     private void executeStatement(String statement) throws DataAccessException {
