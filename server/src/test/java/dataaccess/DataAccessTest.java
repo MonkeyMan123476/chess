@@ -107,6 +107,11 @@ class DataAccessTest {
         assertEquals("joe", da.getGame(111).blackUsername());
     }
 
+    @BeforeEach
+    void clearDatabase() throws DataAccessException {
+        DataAccess da = new MySqlDataAccess();
+        da.clear();
+    }
 
     @Test
     void clearSQL() throws DataAccessException {
