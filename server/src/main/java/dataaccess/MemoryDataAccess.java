@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import datamodel.GameData;
 import datamodel.UserData;
 import datamodel.AuthData;
@@ -66,13 +67,13 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessGame game) {
+    public void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessMove move) {
         GameData oldGameVersion = getGame(gameID);
         if (color == ChessGame.TeamColor.WHITE) {
-            games.put(gameID, new GameData(gameID, username, oldGameVersion.blackUsername(), oldGameVersion.gameName(), game));
+            games.put(gameID, new GameData(gameID, username, oldGameVersion.blackUsername(), oldGameVersion.gameName(), getGame(gameID).game()));
         }
         if (color == ChessGame.TeamColor.BLACK) {
-            games.put(gameID, new GameData(gameID, oldGameVersion.whiteUsername(), username, oldGameVersion.gameName(), game));
+            games.put(gameID, new GameData(gameID, oldGameVersion.whiteUsername(), username, oldGameVersion.gameName(), getGame(gameID).game()));
         }
     }
 }

@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import datamodel.*;
 
 import java.util.List;
@@ -15,5 +16,5 @@ public interface DataAccess {
     List<GameData> listGames(String authToken) throws DataAccessException;
     GameData getGame(int gameID) throws DataAccessException;
     void saveGame(GameData game) throws DataAccessException;
-    void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessGame game) throws DataAccessException;
+    void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessMove move) throws DataAccessException;
 }

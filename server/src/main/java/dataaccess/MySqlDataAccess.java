@@ -1,6 +1,8 @@
 package dataaccess;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import datamodel.AuthData;
 import datamodel.GameData;
@@ -172,27 +174,33 @@ public class MySqlDataAccess implements DataAccess {
     }
 
     @Override
-    public void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessGame game) throws DataAccessException {
+    public void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessMove move) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            if (color == ChessGame.TeamColor.WHITE) {
-                var whiteJoinStatement = "UPDATE games SET whiteUsername=? WHERE gameID=?";
-                addUsername(conn, whiteJoinStatement, username, gameID);
+            if (color != null && username != null) {
+                if (color == ChessGame.TeamColor.WHITE) {
+                    addUsername(conn, "UPDATE games SET whiteUsername=? WHERE gameID=?", username, gameID);
+                }
+                if (color == ChessGame.TeamColor.BLACK) {
+                    addUsername(conn, "UPDATE games SET blackUsername=? WHERE gameID=?", username, gameID);
+                }
             }
-            if (color == ChessGame.TeamColor.BLACK) {
-                var blackJoinStatement = "UPDATE games SET blackUsername=? WHERE gameID=?";
-                addUsername(conn, blackJoinStatement, username, gameID);
+            ChessGame currentGame = getGame(gameID).game();
+            if (move != null) {
+                try {
+                    currentGame.makeMove(move);
+                } catch (InvalidMoveException e) {
+                    throw new DataAccessException("Invalid move: " + e.getMessage());
+                }
             }
             var updateGameStatement = "UPDATE games SET game=? WHERE gameID=?";
             try (PreparedStatement ps = conn.prepareStatement(updateGameStatement)) {
-                ChessGame currentGame = getGame(gameID).game();
-                // Update ChessGame state?? somehow
                 var serializer = new Gson();
                 ps.setString(1, serializer.toJson(currentGame));
                 ps.setInt(2, gameID);
                 ps.executeUpdate();
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("Unable to update game: %s", e.getMessage()));
         }
     }
 

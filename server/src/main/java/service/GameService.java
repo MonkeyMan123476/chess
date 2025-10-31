@@ -71,7 +71,7 @@ public class GameService {
         if (color.equals(ChessGame.TeamColor.WHITE) && gameBeingJoined.whiteUsername() != null) {
             throw new ForbiddenResponse();
         }
-        dataAccess.updateGame(color, gameID, user.username(), gameBeingJoined.game());
+        dataAccess.updateGame(color, gameID, user.username(), null);
     }
 
 }

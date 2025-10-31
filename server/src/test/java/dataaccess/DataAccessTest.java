@@ -103,7 +103,7 @@ class DataAccessTest {
         GameData testGame = new GameData(111, "white", null, "testGame1", new ChessGame());
         da.saveGame(testGame);
         assertNull(da.getGame(111).blackUsername());
-        da.updateGame(ChessGame.TeamColor.BLACK, 111, "joe", new ChessGame());
+        da.updateGame(ChessGame.TeamColor.BLACK, 111, "joe", null);
         assertEquals("joe", da.getGame(111).blackUsername());
     }
 
@@ -204,7 +204,7 @@ class DataAccessTest {
         GameData testGame = new GameData(111, "white", null, "testGame1", new ChessGame());
         da.saveGame(testGame);
         assertNull(da.getGame(111).blackUsername());
-        da.updateGame(ChessGame.TeamColor.BLACK, 111, "joe", new ChessGame());
+        da.updateGame(ChessGame.TeamColor.BLACK, 111, "joe", null);
         assertEquals("joe", da.getGame(111).blackUsername());
     }
 }
