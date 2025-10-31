@@ -1,12 +1,14 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import datamodel.AuthData;
 import datamodel.GameData;
 import datamodel.UserData;
 
 import java.sql.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MySqlDataAccess implements DataAccess {
@@ -106,12 +108,48 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public List<GameData> listGames(String authToken) throws DataAccessException {
-
-        return List.of();
+        List<GameData> gameList = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM games";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (var rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        var serializer = new Gson();
+                        var gameID = rs.getInt("gameID");
+                        var whiteUsername = rs.getString("whiteUsername");
+                        var blackUsername = rs.getString("blackUsername");
+                        var gameName = rs.getString("gameName");
+                        ChessGame game = serializer.fromJson(rs.getString("game"), ChessGame.class);
+                        gameList.add(new GameData(gameID, whiteUsername, blackUsername, gameName, game));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
+        return gameList;
     }
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM games WHERE gameID=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        var serializer = new Gson();
+                        var whiteUsername = rs.getString("whiteUsername");
+                        var blackUsername = rs.getString("blackUsername");
+                        var gameName = rs.getString("gameName");
+                        ChessGame game = serializer.fromJson(rs.getString("game"), ChessGame.class);
+                        return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
         return null;
     }
 
