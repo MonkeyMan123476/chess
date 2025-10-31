@@ -114,11 +114,11 @@ public class MySqlDataAccess implements DataAccess {
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 try (var rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        var serializer = new Gson();
                         var gameID = rs.getInt("gameID");
                         var whiteUsername = rs.getString("whiteUsername");
                         var blackUsername = rs.getString("blackUsername");
                         var gameName = rs.getString("gameName");
+                        var serializer = new Gson();
                         ChessGame game = serializer.fromJson(rs.getString("game"), ChessGame.class);
                         gameList.add(new GameData(gameID, whiteUsername, blackUsername, gameName, game));
                     }
@@ -138,10 +138,10 @@ public class MySqlDataAccess implements DataAccess {
                 ps.setInt(1, gameID);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        var serializer = new Gson();
                         var whiteUsername = rs.getString("whiteUsername");
                         var blackUsername = rs.getString("blackUsername");
                         var gameName = rs.getString("gameName");
+                        var serializer = new Gson();
                         ChessGame game = serializer.fromJson(rs.getString("game"), ChessGame.class);
                         return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
                     }
@@ -155,7 +155,21 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void saveGame(GameData game) throws DataAccessException {
-
+        var statement = "INSERT INTO games (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, game.gameID());
+                ps.setString(2, game.whiteUsername());
+                ps.setString(3, game.blackUsername());
+                ps.setString(4, game.gameName());
+                var serializer = new Gson();
+                System.out.println(serializer.toJson(game.game()).length());
+                ps.setString(5, serializer.toJson(game.game()));
+                ps.executeUpdate();
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
     }
 
     @Override
@@ -197,7 +211,7 @@ public class MySqlDataAccess implements DataAccess {
               `whiteUsername` varchar(50),
               `blackUsername` varchar(50),
               `gameName` varchar(50) NOT NULL,
-              `game` varchar(256) NOT NULL,
+              `game` varchar(2000) NOT NULL,
               PRIMARY KEY (`gameID`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
             """
