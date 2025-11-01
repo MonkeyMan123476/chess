@@ -1,6 +1,9 @@
 package dataaccess;
 
+import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 import datamodel.AuthData;
 import datamodel.GameData;
 import datamodel.UserData;
@@ -210,6 +213,17 @@ class DataAccessTest {
 
     @Test
     void testStateOfGame() throws DataAccessException {
-
+        DataAccess da = new MySqlDataAccess();
+        da.saveAuth(new AuthData("joe", "joeAuthToken"));
+        GameData testGame = new GameData(111, "white", null, "testGame1", new ChessGame());
+        da.saveGame(testGame);
+        da.updateGame(ChessGame.TeamColor.BLACK, 111, "joe", null);
+        assertNotNull(da.getGame(111).game().getBoard());
+        assertNotNull(da.getGame(111).game().getBoard().getPiece(new ChessPosition(2, 1)));
+        assertEquals(ChessGame.TeamColor.WHITE, da.getGame(111).game().getTeamTurn());
+        // MAKE MOVE
+        da.updateGame(null, 111, null, new ChessMove(new ChessPosition(2,1), new ChessPosition(3,1), null));
+        assertNull(da.getGame(111).game().getBoard().getPiece(new ChessPosition(2, 1)));
+        assertEquals(ChessGame.TeamColor.BLACK, da.getGame(111).game().getTeamTurn());
     }
 }
