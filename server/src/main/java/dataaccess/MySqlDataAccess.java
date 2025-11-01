@@ -21,9 +21,9 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void clear() throws DataAccessException {
-        executeStatement("TRUNCATE TABLE users");
-        executeStatement("TRUNCATE TABLE auths");
-        executeStatement("TRUNCATE TABLE games");
+        executeClearStatement("TRUNCATE TABLE users");
+        executeClearStatement("TRUNCATE TABLE auths");
+        executeClearStatement("TRUNCATE TABLE games");
     }
 
     @Override
@@ -214,13 +214,13 @@ public class MySqlDataAccess implements DataAccess {
         }
     }
 
-    private void executeStatement(String statement) throws DataAccessException {
+    private void executeClearStatement(String statement) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 ps.executeUpdate();
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("Unable to clear data: %s", e.getMessage()));
         }
     }
 

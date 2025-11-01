@@ -207,4 +207,9 @@ class DataAccessTest {
         da.updateGame(ChessGame.TeamColor.BLACK, 111, "joe", null);
         assertEquals("joe", da.getGame(111).blackUsername());
     }
+
+    @Test
+    void testStateOfGame() throws DataAccessException {
+
+    }
 }

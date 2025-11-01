@@ -8,6 +8,7 @@ import io.javalin.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
+import io.javalin.http.UnauthorizedResponse;
 import service.*;
 import dataaccess.*;
 
@@ -33,7 +34,13 @@ public class Server {
         this.userService = new UserService(dataAccess);
         this.gameService = new GameService(dataAccess);
 
-        server.delete("db", this::clear);
+        server.delete("db", ctx -> {
+            try {
+                clear(ctx);
+            } catch (DataAccessException e) {
+                error(ctx, e);
+            }
+        });
         server.post("user", ctx -> {
             try {
                 register(ctx);
@@ -41,20 +48,63 @@ public class Server {
                 badRequest(ctx);
             } catch (ForbiddenResponse r) {
                 alreadyTaken(ctx);
+            } catch (DataAccessException e) {
+                error(ctx, e);
             }
         });
-        server.post("session", this::login);
-        server.delete("session", this::logout);
-        server.get("game", this::listGames);
-        server.post("game", this::createGame);
-        server.put("game", this::joinGame);
-
-        // Register your endpoints and exception handlers here.
-        server.error(400, this::badRequest);
-        server.error(401, this::unauthorized);
-        server.error(403, this::alreadyTaken);
-        server.error(500, this::error);
-
+        server.post("session",ctx -> {
+            try {
+                login(ctx);
+            } catch (BadRequestResponse r) {
+                badRequest(ctx);
+            } catch (UnauthorizedResponse r) {
+                unauthorized(ctx);
+            } catch (DataAccessException e) {
+                error(ctx, e);
+            }
+        });
+        server.delete("session", ctx -> {
+            try {
+                logout(ctx);
+            } catch (UnauthorizedResponse r) {
+                unauthorized(ctx);
+            } catch (DataAccessException e) {
+                error(ctx, e);
+            }
+        });
+        server.get("game", ctx -> {
+            try {
+                listGames(ctx);
+            } catch (UnauthorizedResponse r) {
+                unauthorized(ctx);
+            } catch (DataAccessException e) {
+                error(ctx, e);
+            }
+        });
+        server.post("game", ctx -> {
+            try {
+                createGame(ctx);
+            } catch (BadRequestResponse r) {
+                badRequest(ctx);
+            } catch (UnauthorizedResponse r) {
+                unauthorized(ctx);
+            } catch (DataAccessException e) {
+                error(ctx, e);
+            }
+        });
+        server.put("game", ctx -> {
+            try {
+                joinGame(ctx);
+            } catch (BadRequestResponse r) {
+                badRequest(ctx);
+            } catch (UnauthorizedResponse r) {
+                unauthorized(ctx);
+            } catch (ForbiddenResponse r) {
+                alreadyTaken(ctx);
+            } catch (DataAccessException e) {
+                error(ctx, e);
+            }
+        });
     }
 
     private void clear(Context ctx) throws Exception {
@@ -153,8 +203,8 @@ public class Server {
         context.json(new Gson().toJson(Map.of("message", "Error: unauthorized")));
     }
 
-    private void error(Context context) {
-        context.status(500);
-        context.json(new Gson().toJson(Map.of("message", "Error:")));
+    private void error(Context ctx, Exception e) {
+        ctx.status(500);
+        ctx.json(new Gson().toJson(Map.of("message", "Error:" + e.getMessage())));
     }
 }
