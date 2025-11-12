@@ -37,7 +37,16 @@ public class ServerFacade {
         } catch (Exception e) {
             throw new Exception("Unable to login: " + e.getMessage());
         }
+    }
 
+    public AuthData register(String username, String password, String email) throws Exception {
+        var request = buildRequest("POST", "/user", new UserData(username, password, email));
+        var response = sendRequest(request);
+        try {
+            return handleResponse(response, AuthData.class);
+        } catch (Exception e) {
+            throw new Exception("Unable to register: " + e.getMessage());
+        }
     }
 
 

@@ -47,6 +47,7 @@ public class ChessClient {
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
                 case "login" -> login();
+                case "register" -> register();
                 default -> help();
             };
         } catch (Exception e) {
@@ -54,7 +55,7 @@ public class ChessClient {
         }
     }
 
-    public String login() throws Exception {
+    public String login() {
         Scanner scanner = new Scanner(System.in);
         try {
             System.out.print("Enter username: ");
@@ -70,6 +71,28 @@ public class ChessClient {
             return String.format("You signed in as %s.", username);
         } catch (Exception e) {
             return "Unable to login. Please check your username and password.";
+        }
+    }
+
+    public String register() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Enter username: ");
+            String username = scanner.nextLine();
+
+            System.out.print("Enter password: ");
+            String password = scanner.nextLine();
+
+            System.out.print("Enter email: ");
+            String email = scanner.nextLine();
+
+            // Assuming your server has a login method that takes username + password
+            server.register(username, password, email);
+            state = State.SIGNEDIN;
+
+            return String.format("You registered and signed in as %s.", username);
+        } catch (Exception e) {
+            return "Unable to register. Please choose a new username.";
         }
     }
 
