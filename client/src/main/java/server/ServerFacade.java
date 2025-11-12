@@ -18,6 +18,17 @@ public class ServerFacade {
         serverUrl = url;
     }
 
+    // JUST FOR TESTING
+    public void clear() throws Exception {
+        var request = buildRequest("DELETE", "/db", null);
+        var response = sendRequest(request);
+        try {
+            handleResponse(response, null);
+        } catch (Exception e) {
+            throw new Exception("Unable to clear database: " + e.getMessage());
+        }
+    }
+
     public AuthData login(String username, String password) throws Exception {
         var request = buildRequest("POST", "/session", new UserData(username, password, null));
         var response = sendRequest(request);

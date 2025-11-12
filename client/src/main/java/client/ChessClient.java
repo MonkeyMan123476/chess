@@ -79,8 +79,8 @@ public class ChessClient {
         if (state == State.SIGNEDOUT) {
             return """
                     - Help
-                    - Login <username> <password>
-                    - Register
+                    - Login - to play chess
+                    - Register - to create an account
                     - Quit
                     """;
         }
