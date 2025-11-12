@@ -35,6 +35,7 @@ public class ChessClient {
         System.out.println();
     }
 
+
     private void printPrompt() {
         System.out.print("\n" + EscapeSequences.RESET_TEXT_BLINKING + ">>> " + EscapeSequences.SET_TEXT_COLOR_GREEN);
     }
@@ -45,14 +46,27 @@ public class ChessClient {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
+                case "login" -> login(params);
                 default -> help();
             };
-        } catch (Exception ex) {
-            return ex.getMessage();
+        } catch (Exception e) {
+            return e.getMessage();
         }
     }
 
-
+    public String login(String... params) throws Exception {
+        if (params.length >= 1) {
+            try {
+                String username = String.join("", params);
+                server.login(username);
+                state = State.SIGNEDIN;
+                return String.format("You signed in as %s.", username);
+            } catch (Exception e) {
+                return e.getMessage();
+            }
+        }
+        throw new Exception("Expected: <yourname>");
+    }
 
 
 
@@ -73,5 +87,11 @@ public class ChessClient {
                 - Play Game
                 - Observe Game
                 """;
+    }
+
+    private void assertSignedIn() throws Exception {
+        if (state == State.SIGNEDOUT) {
+            throw new Exception("You must sign in");
+        }
     }
 }
