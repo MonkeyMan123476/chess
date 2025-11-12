@@ -46,7 +46,7 @@ public class ChessClient {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
-                case "login" -> login(params);
+                case "login" -> login();
                 default -> help();
             };
         } catch (Exception e) {
@@ -54,18 +54,23 @@ public class ChessClient {
         }
     }
 
-    public String login(String... params) throws Exception {
-        if (params.length >= 1) {
-            try {
-                String username = String.join("", params);
-                server.login(username);
-                state = State.SIGNEDIN;
-                return String.format("You signed in as %s.", username);
-            } catch (Exception e) {
-                return e.getMessage();
-            }
+    public String login() throws Exception {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Enter username: ");
+            String username = scanner.nextLine();
+
+            System.out.print("Enter password: ");
+            String password = scanner.nextLine();
+
+            // Assuming your server has a login method that takes username + password
+            server.login(username, password);
+            state = State.SIGNEDIN;
+
+            return String.format("You signed in as %s.", username);
+        } catch (Exception e) {
+            return e.getMessage();
         }
-        throw new Exception("Expected: <yourname>");
     }
 
 
@@ -74,7 +79,7 @@ public class ChessClient {
         if (state == State.SIGNEDOUT) {
             return """
                     - Help
-                    - Login
+                    - Login <username> <password>
                     - Register
                     - Quit
                     """;

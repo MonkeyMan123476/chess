@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import datamodel.UserData;
 
 import java.net.*;
 import java.net.http.*;
@@ -16,8 +17,8 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public void login(String username) {
-        var request = buildRequest("POST", "session", username);
+    public void login(String username, String password) {
+        var request = buildRequest("POST", "/session", new UserData(username, password, null));
     }
 
 
