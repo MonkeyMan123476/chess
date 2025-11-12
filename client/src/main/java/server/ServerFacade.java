@@ -1,7 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
-import datamodel.UserData;
+import datamodel.*;
+import exception.ResponseException;
 
 import java.net.*;
 import java.net.http.*;
@@ -17,8 +18,15 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public void login(String username, String password) {
+    public AuthData login(String username, String password) throws Exception {
         var request = buildRequest("POST", "/session", new UserData(username, password, null));
+        var response = sendRequest(request);
+        try {
+            return handleResponse(response, AuthData.class);
+        } catch (Exception e) {
+            throw new Exception("Unable to login: " + e.getMessage());
+        }
+
     }
 
 
@@ -46,5 +54,27 @@ public class ServerFacade {
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
+    }
+
+    private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws ResponseException {
+        var status = response.statusCode();
+        if (!isSuccessful(status)) {
+            var body = response.body();
+            if (body != null) {
+                throw ResponseException.fromJson(body);
+            }
+
+            throw new ResponseException(ResponseException.fromHttpStatusCode(status), "other failure: " + status);
+        }
+
+        if (responseClass != null) {
+            return new Gson().fromJson(response.body(), responseClass);
+        }
+
+        return null;
+    }
+
+    private boolean isSuccessful(int status) {
+        return status / 100 == 2;
     }
 }

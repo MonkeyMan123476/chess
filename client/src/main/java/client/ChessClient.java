@@ -69,7 +69,7 @@ public class ChessClient {
 
             return String.format("You signed in as %s.", username);
         } catch (Exception e) {
-            return e.getMessage();
+            return "Unable to login. Please check your username and password.";
         }
     }
 
