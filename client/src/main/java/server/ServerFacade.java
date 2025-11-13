@@ -59,6 +59,16 @@ public class ServerFacade {
         }
     }
 
+    public GameData createGame(String authToken, String gameName) throws Exception {
+        var request = buildRequest("POST", "/game", new GameData(0, null, null, gameName, null), authToken);
+        var response = sendRequest(request);
+        try {
+            return handleResponse(response, GameData.class);
+        } catch (Exception e) {
+            throw new Exception("Unable to create game: " + e.getMessage());
+        }
+    }
+
 
     private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
         var request = HttpRequest.newBuilder()

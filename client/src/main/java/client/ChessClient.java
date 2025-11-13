@@ -62,7 +62,7 @@ public class ChessClient {
                 return switch (cmd) {
                     case "help" -> help();
                     case "logout" -> logout();
-                    //case "create game" -> createGame();
+                    case "create" -> createGame();
                     //case "list games" -> listGames();
                     //case "play game" -> playGame();
                     //case "observe game" -> observeGame();
@@ -100,7 +100,6 @@ public class ChessClient {
             System.out.print("Enter email: ");
             String email = scanner.nextLine();
             authToken = server.register(username, password, email).authToken();
-            System.out.println(authToken);
             state = State.SIGNEDIN;
             String returnStatement = String.format("You registered and signed in as %s.\n", username);
             return returnStatement + help();
@@ -120,6 +119,18 @@ public class ChessClient {
         }
     }
 
+    public String createGame() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Name your game: ");
+            String gameName = scanner.nextLine();
+            server.createGame(authToken, gameName);
+            String returnStatement = String.format("You created game %s.\n", gameName);
+            return returnStatement + help();
+        } catch (Exception e) {
+            return "Unable to create game. Please choose a new game name.\n" + help();
+        }
+    }
 
     public String help() {
         if (state == State.SIGNEDOUT) {
@@ -133,10 +144,10 @@ public class ChessClient {
         return """
                 - Help
                 - Logout
-                - Create Game
-                - List Games
-                - Play Game
-                - Observe Game
+                - Create - create a game
+                - List - list all games
+                - Play - play a game
+                - Observe - observe a game
                 """;
     }
 
