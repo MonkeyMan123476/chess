@@ -20,7 +20,7 @@ public class ServerFacade {
 
     // JUST FOR TESTING
     public void clear() throws Exception {
-        var request = buildRequest("DELETE", "/db", null);
+        var request = buildRequest("DELETE", "/db", null, null);
         var response = sendRequest(request);
         try {
             handleResponse(response, null);
@@ -30,7 +30,7 @@ public class ServerFacade {
     }
 
     public AuthData login(String username, String password) throws Exception {
-        var request = buildRequest("POST", "/session", new UserData(username, password, null));
+        var request = buildRequest("POST", "/session", new UserData(username, password, null), null);
         var response = sendRequest(request);
         try {
             return handleResponse(response, AuthData.class);
@@ -40,7 +40,7 @@ public class ServerFacade {
     }
 
     public AuthData register(String username, String password, String email) throws Exception {
-        var request = buildRequest("POST", "/user", new UserData(username, password, email));
+        var request = buildRequest("POST", "/user", new UserData(username, password, email), null);
         var response = sendRequest(request);
         try {
             return handleResponse(response, AuthData.class);
@@ -50,7 +50,7 @@ public class ServerFacade {
     }
 
     public void logout(String authToken) throws Exception {
-        var request = buildRequest("DELETE", "/session", new AuthData(null, authToken));
+        var request = buildRequest("DELETE", "/session", null, authToken);
         var response = sendRequest(request);
         try {
             handleResponse(response, null);
@@ -60,12 +60,15 @@ public class ServerFacade {
     }
 
 
-    private HttpRequest buildRequest(String method, String path, Object body) {
+    private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
+        }
+        if (authToken != null && !authToken.isBlank()) {
+            request.header("authorization", authToken);
         }
         return request.build();
     }

@@ -132,18 +132,15 @@ public class Server {
     }
 
     private void logout(Context ctx) throws Exception {
-        var serializer = new Gson();
-        String reqJson = ctx.header("authorization");
-        var req = serializer.fromJson(reqJson, String.class);
-        userService.logout(req);
+        String authToken = ctx.header("authorization");
+        userService.logout(authToken);
         ctx.result("{}");
     }
 
     private void listGames(Context ctx) throws Exception {
         var serializer = new Gson();
-        String reqJson = ctx.header("authorization");
-        var req = serializer.fromJson(reqJson, String.class);
-        var resList = gameService.listGames(req);
+        String authToken = ctx.header("authorization");
+        var resList = gameService.listGames(authToken);
         List<Map<String, Object>> newList = new ArrayList<>();
         for (GameData gameData : resList) {
             Map<String, Object> gameValues = new HashMap<>();
@@ -159,19 +156,19 @@ public class Server {
 
     private void createGame(Context ctx) throws Exception {
         var serializer = new Gson();
-        String reqAuth = ctx.header("authorization");
+        String authToken = ctx.header("authorization");
         String reqGameJson = ctx.body();
         var reqGame = serializer.fromJson(reqGameJson, GameData.class);
-        var res = Map.of("gameID", gameService.createGame(reqAuth, reqGame).gameID());
+        var res = Map.of("gameID", gameService.createGame(authToken, reqGame).gameID());
         ctx.result(serializer.toJson(res));
     }
 
     private void joinGame(Context ctx) throws Exception {
         var serializer = new Gson();
-        String reqAuth = ctx.header("authorization");
+        String authToken = ctx.header("authorization");
         String reqGameJson = ctx.body();
         var reqGame = serializer.fromJson(reqGameJson, JoinData.class);
-        gameService.joinGame(reqAuth, reqGame);
+        gameService.joinGame(authToken, reqGame);
         ctx.result("{}");
     }
 
