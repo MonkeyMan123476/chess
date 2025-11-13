@@ -20,12 +20,16 @@ public class ChessClient {
         System.out.println("♕ Welcome to Chess. Type Help to get started." + EscapeSequences.WHITE_QUEEN + "\n");
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("Help")) {
+        while (true) {
             printPrompt();
             String line = scanner.nextLine();
 
             try {
                 result = eval(line);
+                if (result.equalsIgnoreCase("quit")) {
+                    System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + "Goodbye!");
+                    break;
+                }
                 System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE + result);
             } catch (Throwable e) {
                 var msg = e.toString();
@@ -45,11 +49,25 @@ public class ChessClient {
             String[] tokens = input.toLowerCase().split(" ");
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (cmd) {
-                case "login" -> login();
-                case "register" -> register();
-                default -> help();
-            };
+            if (state == State.SIGNEDOUT) {
+                return switch (cmd) {
+                    case "help" -> help();
+                    case "login" -> login();
+                    case "register" -> register();
+                    case "quit" -> "quit";
+                    default -> "♕ Welcome to Chess. Type Help to get started." + EscapeSequences.WHITE_QUEEN + "\n";
+                };
+            } else {
+                return switch (cmd) {
+                    case "help" -> help();
+                    //case "logout" -> logout();
+                    //case "create game" -> createGame();
+                    //case "list games" -> listGames();
+                    //case "play game" -> playGame();
+                    //case "observe game" -> observeGame();
+                    default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
+                };
+            }
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -70,7 +88,7 @@ public class ChessClient {
 
             return String.format("You signed in as %s.", username);
         } catch (Exception e) {
-            return "Unable to login. Please check your username and password.";
+            return "Unable to login. Please check your username and password." + help();
         }
     }
 
@@ -92,7 +110,7 @@ public class ChessClient {
 
             return String.format("You registered and signed in as %s.", username);
         } catch (Exception e) {
-            return "Unable to register. Please choose a new username.";
+            return "Unable to register. Please choose a new username." + help();
         }
     }
 
@@ -101,13 +119,15 @@ public class ChessClient {
     public String help() {
         if (state == State.SIGNEDOUT) {
             return """
+                    \n
                     - Help
+                    - Quit
                     - Login - to play chess
                     - Register - to create an account
-                    - Quit
                     """;
         }
         return """
+                \n
                 - Help
                 - Logout
                 - Create Game
