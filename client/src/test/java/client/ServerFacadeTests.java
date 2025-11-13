@@ -69,4 +69,16 @@ public class ServerFacadeTests {
         serverFacade.register("logoutInvalidTestUsername", "correctPassword", "email@email.com");
         assertThrows(Exception.class, () -> serverFacade.logout("invalidAuthToken"));
     }
+
+    @Test
+    void createGame() throws Exception {
+        var authData = serverFacade.register("createGameTestUsername", "password", "email@email.com");
+        var GameData = serverFacade.createGame(authData.authToken(), "testGameName");
+        assertEquals(1, GameData.gameID());
+    }
+
+    @Test
+    void createGameInvalid() {
+        assertThrows(Exception.class, () -> serverFacade.createGame("invalidAuthToken", "testGameName"));
+    }
 }

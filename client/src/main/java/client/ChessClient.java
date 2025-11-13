@@ -124,8 +124,8 @@ public class ChessClient {
         try {
             System.out.print("Name your game: ");
             String gameName = scanner.nextLine();
-            server.createGame(authToken, gameName);
-            String returnStatement = String.format("You created game %s.\n", gameName);
+            var GameData = server.createGame(authToken, gameName);
+            String returnStatement = String.format("You created game %s with the gameID %s.\n", gameName, GameData.gameID());
             return returnStatement + help();
         } catch (Exception e) {
             return "Unable to create game. Please choose a new game name.\n" + help();
