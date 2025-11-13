@@ -38,19 +38,34 @@ public class ServerFacadeTests {
     }
 
     @Test
+    void registerInvalid() throws Exception {
+        serverFacade.register("registerInvalidTestUsername", "password", "email@email.com");
+        assertThrows(Exception.class, () -> serverFacade.register("registerInvalidTestUsername", "password", "email@email.com"));
+    }
+
+    @Test
     void login() throws Exception {
         serverFacade.register("loginTestUsername", "correctPassword", "email@email.com");
-        assertThrows(Exception.class, () -> serverFacade.login("loginTestUsername", "wrongPassword"));
         var authData = serverFacade.login("loginTestUsername", "correctPassword");
         assertNotNull(authData);
         assertEquals("loginTestUsername", authData.username());
     }
 
     @Test
+    void loginInvalid() throws Exception {
+        serverFacade.register("loginInvalidTestUsername", "correctPassword", "email@email.com");
+        assertThrows(Exception.class, () -> serverFacade.login("loginInvalidTestUsername", "wrongPassword"));
+    }
+
+    @Test
     void logout() throws Exception {
         var authData = serverFacade.register("logoutTestUsername", "correctPassword", "email@email.com");
+        assertDoesNotThrow(() -> serverFacade.logout(authData.authToken()));
+    }
+
+    @Test
+    void logoutInvalid() throws Exception {
+        serverFacade.register("logoutInvalidTestUsername", "correctPassword", "email@email.com");
         assertThrows(Exception.class, () -> serverFacade.logout("invalidAuthToken"));
-        serverFacade.logout(authData.authToken());
-        assertThrows(Exception.class, () -> serverFacade.logout(authData.authToken()));
     }
 }
