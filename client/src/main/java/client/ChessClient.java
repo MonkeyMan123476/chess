@@ -69,7 +69,8 @@ public class ChessClient {
                     //case "list games" -> listGames();
                     //case "play game" -> playGame();
                     //case "observe game" -> observeGame();
-                    case "draw" -> drawBoard(ChessGame.TeamColor.WHITE, testDrawBoard);
+                    case "drawwhite" -> drawBoard(ChessGame.TeamColor.WHITE, testDrawBoard);
+                    case "drawblack" -> drawBoard(ChessGame.TeamColor.BLACK, testDrawBoard);
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             }
@@ -165,7 +166,7 @@ public class ChessClient {
         String drawnBoard = "";
         if (perspective == ChessGame.TeamColor.BLACK) {
             for (int row = 1; row <= 8; row++) {
-                for (int col = 1; col<= 8; col++) {
+                for (int col = 8; col >= 1; col--) {
                     drawnBoard += makeSquare(board, row, col);
                 }
                 drawnBoard += "\n";
@@ -183,7 +184,7 @@ public class ChessClient {
 
     private String makeSquare(ChessBoard board, int row, int col) {
         String chessSquare = "";
-        boolean isWhiteSquare = (row + col) % 2 == 0;
+        boolean isWhiteSquare = !((row + col) % 2 == 0);
         String bgColor = isWhiteSquare ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_BLUE;
         ChessPiece piece = board.getPiece(new ChessPosition(row, col));
         chessSquare += bgColor + EscapeSequences.SET_TEXT_COLOR_BLACK;
