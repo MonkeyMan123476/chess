@@ -162,28 +162,38 @@ public class ChessClient {
     }
 
     private String drawBoard(ChessGame.TeamColor perspective, ChessBoard board) {
-        String[][] displayBoard = new String[8][8];
         String drawnBoard = "";
         if (perspective == ChessGame.TeamColor.BLACK) {
-
+            for (int row = 1; row <= 8; row++) {
+                for (int col = 1; col<= 8; col++) {
+                    drawnBoard += makeSquare(board, row, col);
+                }
+                drawnBoard += "\n";
+            }
         } else {
             for (int row = 8; row >= 1; row--) {
                 for (int col = 1; col <= 8; col++) {
-                    boolean isWhiteSquare = (row + col) % 2 == 0;
-                    String bgColor = isWhiteSquare ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_BLUE;
-                    ChessPiece piece = board.getPiece(new ChessPosition(row, col));
-                    drawnBoard += bgColor + EscapeSequences.SET_TEXT_COLOR_BLACK;
-                    if (piece != null) {
-                        drawnBoard += pieceIcon(piece);
-                    } else {
-                        drawnBoard += EscapeSequences.EMPTY;
-                    }
-                    drawnBoard += EscapeSequences.RESET_BG_COLOR;
+                    drawnBoard += makeSquare(board, row, col);
                 }
                 drawnBoard += "\n";
             }
         }
         return drawnBoard;
+    }
+
+    private String makeSquare(ChessBoard board, int row, int col) {
+        String chessSquare = "";
+        boolean isWhiteSquare = (row + col) % 2 == 0;
+        String bgColor = isWhiteSquare ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_BLUE;
+        ChessPiece piece = board.getPiece(new ChessPosition(row, col));
+        chessSquare += bgColor + EscapeSequences.SET_TEXT_COLOR_BLACK;
+        if (piece != null) {
+            chessSquare += pieceIcon(piece);
+        } else {
+            chessSquare += EscapeSequences.EMPTY;
+        }
+        chessSquare += EscapeSequences.RESET_BG_COLOR;
+        return chessSquare;
     }
 
     private String pieceIcon(ChessPiece piece) {
