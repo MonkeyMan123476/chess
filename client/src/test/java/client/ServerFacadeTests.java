@@ -4,7 +4,7 @@ import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
@@ -28,14 +28,29 @@ public class ServerFacadeTests {
 
 
     @Test
-    public void sampleTest() {
-        Assertions.assertTrue(true);
+    void register() throws Exception {
+        assertThrows(Exception.class, () -> serverFacade.login("registerTestUsername", "password"));
+        var authData1 = serverFacade.register("registerTestUsername", "password", "email@email.com");
+        assertNotNull(authData1.authToken());
+        var authData2 = serverFacade.login("registerTestUsername", "password");
+        assertNotNull(authData2.authToken());
+        assertEquals(authData1.username(), authData2.username());
     }
 
     @Test
     void login() throws Exception {
-        assertThrows(Exception.class, () -> serverFacade.login("username1", "wrongPassword"));
-
+        serverFacade.register("loginTestUsername", "correctPassword", "email@email.com");
+        assertThrows(Exception.class, () -> serverFacade.login("loginTestUsername", "wrongPassword"));
+        var authData = serverFacade.login("loginTestUsername", "correctPassword");
+        assertNotNull(authData);
+        assertEquals("loginTestUsername", authData.username());
     }
 
+    @Test
+    void logout() throws Exception {
+        var authData = serverFacade.register("logoutTestUsername", "correctPassword", "email@email.com");
+        assertThrows(Exception.class, () -> serverFacade.logout("invalidAuthToken"));
+        serverFacade.logout(authData.authToken());
+        assertThrows(Exception.class, () -> serverFacade.logout(authData.authToken()));
+    }
 }

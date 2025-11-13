@@ -83,7 +83,8 @@ public class ChessClient {
             String password = scanner.nextLine();
             authToken = server.login(username, password).authToken();
             state = State.SIGNEDIN;
-            return String.format("You signed in as %s.", username);
+            String returnStatement = String.format("You signed in as %s.\n", username);
+            return returnStatement + help();
         } catch (Exception e) {
             return "Unable to login. Please check your username and password.\n" + help();
         }
@@ -101,7 +102,8 @@ public class ChessClient {
             authToken = server.register(username, password, email).authToken();
             System.out.println(authToken);
             state = State.SIGNEDIN;
-            return String.format("You registered and signed in as %s.", username);
+            String returnStatement = String.format("You registered and signed in as %s.\n", username);
+            return returnStatement + help();
         } catch (Exception e) {
             return "Unable to register. Please choose a new username.\n" + help();
         }
@@ -112,9 +114,9 @@ public class ChessClient {
             server.logout(authToken);
             authToken = "";
             state = State.SIGNEDOUT;
-            return "You signed out.";
+            return "You signed out.\n" + help();
         } catch (Exception e) {
-            return "Unauthorized";
+            return "Unauthorized\n" + help();
         }
     }
 
