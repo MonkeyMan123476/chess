@@ -1,6 +1,7 @@
 package client;
 
 
+import chess.*;
 import server.ServerFacade;
 import ui.EscapeSequences;
 
@@ -47,6 +48,8 @@ public class ChessClient {
     }
 
     public String eval(String input) {
+        ChessBoard testDrawBoard = new ChessBoard();
+        testDrawBoard.resetBoard();
         try {
             String[] tokens = input.toLowerCase().split(" ");
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
@@ -66,6 +69,7 @@ public class ChessClient {
                     //case "list games" -> listGames();
                     //case "play game" -> playGame();
                     //case "observe game" -> observeGame();
+                    case "draw" -> drawBoard(ChessGame.TeamColor.WHITE, testDrawBoard);
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             }
@@ -154,6 +158,68 @@ public class ChessClient {
     private void assertSignedIn() throws Exception {
         if (state == State.SIGNEDOUT) {
             throw new Exception("You must sign in");
+        }
+    }
+
+    private String drawBoard(ChessGame.TeamColor perspective, ChessBoard board) {
+        String[][] displayBoard = new String[8][8];
+        String drawnBoard = "";
+        if (perspective == ChessGame.TeamColor.BLACK) {
+
+        } else {
+            for (int row = 8; row >= 1; row--) {
+                for (int col = 1; col <= 8; col++) {
+                    boolean isWhiteSquare = (row + col) % 2 == 0;
+                    String bgColor = isWhiteSquare ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_BLUE;
+                    ChessPiece piece = board.getPiece(new ChessPosition(row, col));
+                    drawnBoard += bgColor + EscapeSequences.SET_TEXT_COLOR_BLACK;
+                    if (piece != null) {
+                        drawnBoard += pieceIcon(piece);
+                    } else {
+                        drawnBoard += EscapeSequences.EMPTY;
+                    }
+                    drawnBoard += EscapeSequences.RESET_BG_COLOR;
+                }
+                drawnBoard += "\n";
+            }
+        }
+        return drawnBoard;
+    }
+
+    private String pieceIcon(ChessPiece piece) {
+        switch (piece.getPieceType()) {
+            case BISHOP:
+                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    return EscapeSequences.WHITE_BISHOP;
+                }
+                return EscapeSequences.BLACK_BISHOP;
+            case KING:
+                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    return EscapeSequences.WHITE_KING;
+                }
+                return EscapeSequences.BLACK_KING;
+            case KNIGHT:
+                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    return EscapeSequences.WHITE_KNIGHT;
+                }
+                return EscapeSequences.BLACK_KNIGHT;
+            case PAWN:
+                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    return EscapeSequences.WHITE_PAWN;
+                }
+                return EscapeSequences.BLACK_PAWN;
+            case QUEEN:
+                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    return EscapeSequences.WHITE_QUEEN;
+                }
+                return EscapeSequences.BLACK_QUEEN;
+            case ROOK:
+                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                  return EscapeSequences.WHITE_ROOK;
+                }
+                return EscapeSequences.BLACK_ROOK;
+            default:
+                return EscapeSequences.EMPTY;
         }
     }
 }
