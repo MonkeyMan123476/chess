@@ -110,7 +110,7 @@ public class ChessClient {
             String returnStatement = String.format("You registered and signed in as %s.\n", username);
             return returnStatement + help();
         } catch (Exception e) {
-            return "Unable to register. Please choose a new username.\n" + help();
+            return "Unable to register. Please choose a new username and password.\n" + help();
         }
     }
 
