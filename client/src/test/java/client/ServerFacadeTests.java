@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
@@ -72,9 +73,10 @@ public class ServerFacadeTests {
 
     @Test
     void createGame() throws Exception {
+        serverFacade.clear();
         var authData = serverFacade.register("createGameTestUsername", "password", "email@email.com");
         var gameData = serverFacade.createGame(authData.authToken(), "testGameName");
-        assertEquals(1, gameData.gameID());
+        assertEquals("testGameName", serverFacade.getGame(gameData.gameID()).gameName());
     }
 
     @Test
@@ -82,6 +84,37 @@ public class ServerFacadeTests {
         assertThrows(Exception.class, () -> serverFacade.createGame("invalidAuthToken", "testGameName"));
     }
 
+    @Test
+    void listGames() throws Exception {
+        var authData = serverFacade.register("listGamesTestUsername", "password", "email@email.com");
+        serverFacade.createGame(authData.authToken(), "game1");
+        serverFacade.createGame(authData.authToken(), "game2");
+        assertEquals(2, serverFacade.listGames(authData.authToken()).size());
+        assertEquals("game1", serverFacade.listGames(authData.authToken()).get(0).gameName());
+        assertEquals("game2", serverFacade.listGames(authData.authToken()).get(1).gameName());
+    }
 
+    @Test
+    void listGamesInvalid() {
+        assertThrows(Exception.class, () -> serverFacade.listGames("invalidAuthToken"));
+    }
 
+    @Test
+    void playGame() throws Exception {
+        serverFacade.clear();
+        var authData = serverFacade.register("playGameTestUsername", "password", "email@email.com");
+        var gameData = serverFacade.createGame(authData.authToken(), "playGameTest1");
+        assertNull(serverFacade.getGame(gameData.gameID()).whiteUsername());
+        serverFacade.joinGame(authData.authToken(), gameData.gameID(), ChessGame.TeamColor.WHITE);
+        assertEquals("playGameTestUsername", serverFacade.getGame(gameData.gameID()).whiteUsername());
+    }
+
+    @Test
+    void playGameInvalid() throws Exception {
+        serverFacade.clear();
+        var authData = serverFacade.register("playGameInvalidTestUsername", "password", "email@email.com");
+        var gameData = serverFacade.createGame(authData.authToken(), "playGameInvalid");
+        serverFacade.joinGame(authData.authToken(), gameData.gameID(), ChessGame.TeamColor.WHITE);
+        assertThrows(Exception.class, () -> serverFacade.joinGame(authData.authToken(), 1, ChessGame.TeamColor.WHITE));
+    }
 }

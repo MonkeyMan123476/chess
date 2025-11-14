@@ -97,11 +97,11 @@ public class ServerFacade {
         }
     }
 
-    public ChessGame getGame(int gameNumber) throws Exception {
+    public GameData getGame(int gameNumber) throws Exception {
         var request = buildRequest("GET", "/game/" + gameNumber, null, null);
         var response = sendRequest(request);
         try {
-            return handleResponse(response, ChessGame.class);
+            return handleResponse(response, GameData.class);
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }

@@ -72,9 +72,6 @@ public class ChessClient {
                     case "list" -> listGames();
                     case "play" -> playGame();
                     case "observe" -> observeGame();
-                    //for testing
-                    case "drawwhite" -> drawBoard(ChessGame.TeamColor.WHITE, testDrawBoard);
-                    case "drawblack" -> drawBoard(ChessGame.TeamColor.BLACK, testDrawBoard);
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             }
@@ -173,7 +170,7 @@ public class ChessClient {
             int gameNumber = Integer.parseInt(scanner.nextLine());
             System.out.print("Enter the team you would like to play as (White or Black): ");
             ChessGame.TeamColor team = ChessGame.TeamColor.valueOf(scanner.nextLine().toUpperCase());
-            ChessBoard board = server.getGame(gameNumber).getBoard();
+            ChessBoard board = server.getGame(gameNumber).game().getBoard();
             server.joinGame(authToken, gameNumber, team);
             String returnStatement = String.format("You joined game %s as the %s team\n", gameNumber, team);
             return returnStatement + drawBoard(team, board);
@@ -187,7 +184,7 @@ public class ChessClient {
         try {
             System.out.print("Enter the game number you would like to observe: ");
             int gameNumber = Integer.parseInt(scanner.nextLine());
-            ChessBoard board = server.getGame(gameNumber).getBoard();
+            ChessBoard board = server.getGame(gameNumber).game().getBoard();
             return String.format("You are now observing game %s\n", gameNumber) + drawBoard(ChessGame.TeamColor.WHITE, board);
         } catch (Exception e) {
             return "Unable to observe game. Please enter a valid game number.\n" + help();

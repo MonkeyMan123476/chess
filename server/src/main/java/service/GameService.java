@@ -74,7 +74,7 @@ public class GameService {
         dataAccess.updateGame(color, gameID, user.username(), null);
     }
 
-    public ChessGame getGame(int id) throws DataAccessException {
-        return dataAccess.getGame(id).game();
+    public GameData getGame(int id) throws DataAccessException {
+        return dataAccess.getGame(id);
     }
 }
