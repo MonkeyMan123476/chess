@@ -33,6 +33,7 @@ public class GameService {
     }
 
     public GameData createGame(String authToken, GameData game) throws DataAccessException {
+        gameNumber = listGames(authToken).size() + 1;
         if (dataAccess.getAuth(authToken) == null) {
             throw new UnauthorizedResponse();
         }
