@@ -186,11 +186,6 @@ public class ChessClient {
                 """;
     }
 
-    private void assertSignedIn() throws Exception {
-        if (state == State.SIGNEDOUT) {
-            throw new Exception("You must sign in");
-        }
-    }
 
     private String drawBoard(ChessGame.TeamColor perspective, ChessBoard board) {
         String drawnBoard = "";
