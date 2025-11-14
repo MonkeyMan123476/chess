@@ -147,6 +147,9 @@ public class ChessClient {
             String listPrinted = "\n" + EscapeSequences.SET_TEXT_COLOR_MAGENTA;
             gameNumbers.clear();
             int counter = 1;
+            if (gameList.isEmpty()) {
+                listPrinted += "No games have been created.\n";
+            }
             for (GameData game : gameList) {
                 gameNumbers.add(counter);
                 listPrinted += "\nGame Number: " + counter + "\nName: " + game.gameName() + "\nWhite Player: ";
