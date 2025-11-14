@@ -4,11 +4,15 @@ import com.google.gson.Gson;
 import datamodel.*;
 import exception.ResponseException;
 
+import java.lang.reflect.Type;
 import java.net.*;
 import java.net.http.*;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.List;
+import com.google.gson.reflect.TypeToken;
+
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
@@ -69,6 +73,19 @@ public class ServerFacade {
         }
     }
 
+    public List<GameData> listGames(String authToken) throws Exception {
+        var request = buildRequest("GET", "/game", null, authToken);
+        var response = sendRequest(request);
+        Type wrapperType = new TypeToken<GameListResponse>(){}.getType();
+        try {
+            GameListResponse wrapper = handleResponse(response, wrapperType);
+            assert wrapper != null;
+            return wrapper.games;
+        } catch (Exception e) {
+            throw new Exception("Unable to list games: " + e.getMessage());
+        }
+    }
+
 
     private HttpRequest buildRequest(String method, String path, Object body, String authToken) {
         var request = HttpRequest.newBuilder()
@@ -99,7 +116,7 @@ public class ServerFacade {
         }
     }
 
-    private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws ResponseException {
+    private <T> T handleResponse(HttpResponse<String> response, Type responseType) throws ResponseException {
         var status = response.statusCode();
         if (!isSuccessful(status)) {
             var body = response.body();
@@ -110,8 +127,8 @@ public class ServerFacade {
             throw new ResponseException(ResponseException.fromHttpStatusCode(status), "other failure: " + status);
         }
 
-        if (responseClass != null) {
-            return new Gson().fromJson(response.body(), responseClass);
+        if (responseType != null) {
+            return new Gson().fromJson(response.body(), responseType);
         }
 
         return null;
@@ -120,4 +137,8 @@ public class ServerFacade {
     private boolean isSuccessful(int status) {
         return status / 100 == 2;
     }
+}
+
+class GameListResponse {
+    List<GameData> games;
 }

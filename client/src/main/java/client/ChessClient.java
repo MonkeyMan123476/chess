@@ -2,10 +2,12 @@ package client;
 
 
 import chess.*;
+import datamodel.GameData;
 import server.ServerFacade;
 import ui.EscapeSequences;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class ChessClient {
@@ -66,9 +68,9 @@ public class ChessClient {
                     case "help" -> help();
                     case "logout" -> logout();
                     case "create" -> createGame();
-                    //case "list games" -> listGames();
-                    //case "play game" -> playGame();
-                    //case "observe game" -> observeGame();
+                    case "list" -> listGames();
+                    //case "play" -> playGame();
+                    //case "observe" -> observeGame();
                     case "drawwhite" -> drawBoard(ChessGame.TeamColor.WHITE, testDrawBoard);
                     case "drawblack" -> drawBoard(ChessGame.TeamColor.BLACK, testDrawBoard);
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
@@ -134,6 +136,16 @@ public class ChessClient {
             return returnStatement + help();
         } catch (Exception e) {
             return "Unable to create game. Please choose a new game name.\n" + help();
+        }
+    }
+
+    public String listGames() {
+        try {
+            List<GameData> gameList = server.listGames(authToken);
+            System.out.println(gameList);
+            return "done";
+        } catch (Exception e) {
+            return "Unable to list games.";
         }
     }
 
