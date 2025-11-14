@@ -46,7 +46,8 @@ public class ChessClient {
 
 
     private void printPrompt() {
-        System.out.print("\n" + EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.RESET_TEXT_BLINKING + ">>> " + EscapeSequences.SET_TEXT_COLOR_GREEN);
+        System.out.print("\n" + EscapeSequences.SET_TEXT_COLOR_BLUE);
+        System.out.print(EscapeSequences.RESET_TEXT_BLINKING + ">>> " + EscapeSequences.SET_TEXT_COLOR_GREEN);
     }
 
     public String eval(String input) {

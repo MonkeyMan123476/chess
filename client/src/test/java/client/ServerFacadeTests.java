@@ -73,8 +73,8 @@ public class ServerFacadeTests {
     @Test
     void createGame() throws Exception {
         var authData = serverFacade.register("createGameTestUsername", "password", "email@email.com");
-        var GameData = serverFacade.createGame(authData.authToken(), "testGameName");
-        assertEquals(1, GameData.gameID());
+        var gameData = serverFacade.createGame(authData.authToken(), "testGameName");
+        assertEquals(1, gameData.gameID());
     }
 
     @Test
