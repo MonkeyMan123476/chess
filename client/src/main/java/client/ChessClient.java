@@ -6,19 +6,19 @@ import datamodel.GameData;
 import server.ServerFacade;
 import ui.EscapeSequences;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class ChessClient {
     private final ServerFacade server;
     private State state = State.SIGNEDOUT;
     private String authToken;
+    private List<Integer> gameNumbers;
 
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacade(serverUrl);
         authToken = "";
+        gameNumbers = new ArrayList<>();
     }
 
     public void run() {
@@ -143,9 +143,24 @@ public class ChessClient {
 
     public String listGames() {
         try {
-            List<GameData> gameList = server.listGames(authToken);
-            System.out.println(gameList);
-            return "put list here";
+            ArrayList<GameData> gameList = server.listGames(authToken);
+            String listPrinted = "\n";
+            gameNumbers.clear();
+            int counter = 1;
+            for (GameData game : gameList) {
+                gameNumbers.add(counter);
+                listPrinted += "\nGame Number: " + counter + "\nName: " + game.gameName() + "\nWhite Player: ";
+                if (game.whiteUsername() != null) {
+                    listPrinted += game.whiteUsername();
+                }
+                listPrinted += "\nBlack Player: ";
+                if (game.blackUsername() != null) {
+                    listPrinted += game.blackUsername();
+                }
+                listPrinted += "\n";
+                counter++;
+            }
+            return listPrinted;
         } catch (Exception e) {
             return "Unable to list games.";
         }
@@ -163,7 +178,7 @@ public class ChessClient {
             String returnStatement = String.format("You joined game %s as the %s team\n", gameNumber, team);
             return returnStatement + drawBoard(team, board);
         } catch (Exception e) {
-            return "Unable to join game. Please enter a valid game number\n" + help();
+            return "Unable to join game. Please enter a valid game number and empty team color.\n" + help();
         }
     }
 

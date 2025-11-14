@@ -11,7 +11,7 @@ import java.net.http.*;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.List;
+import java.util.ArrayList;
 import com.google.gson.reflect.TypeToken;
 
 
@@ -74,7 +74,7 @@ public class ServerFacade {
         }
     }
 
-    public List<GameData> listGames(String authToken) throws Exception {
+    public ArrayList<GameData> listGames(String authToken) throws Exception {
         var request = buildRequest("GET", "/game", null, authToken);
         var response = sendRequest(request);
         Type wrapperType = new TypeToken<GameListResponse>(){}.getType();
@@ -161,5 +161,5 @@ public class ServerFacade {
 }
 
 class GameListResponse {
-    List<GameData> games;
+    ArrayList<GameData> games;
 }
