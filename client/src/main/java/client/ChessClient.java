@@ -69,8 +69,9 @@ public class ChessClient {
                     case "logout" -> logout();
                     case "create" -> createGame();
                     case "list" -> listGames();
-                    //case "play" -> playGame();
+                    case "play" -> playGame();
                     //case "observe" -> observeGame();
+                    //for testing
                     case "drawwhite" -> drawBoard(ChessGame.TeamColor.WHITE, testDrawBoard);
                     case "drawblack" -> drawBoard(ChessGame.TeamColor.BLACK, testDrawBoard);
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
@@ -143,9 +144,25 @@ public class ChessClient {
         try {
             List<GameData> gameList = server.listGames(authToken);
             System.out.println(gameList);
-            return "done";
+            return "put list here";
         } catch (Exception e) {
             return "Unable to list games.";
+        }
+    }
+
+    public String playGame() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Enter the game number you would like to join: ");
+            int gameNumber = Integer.parseInt(scanner.nextLine());
+            System.out.print("Enter the team you would like to play as (White or Black): ");
+            ChessGame.TeamColor team = ChessGame.TeamColor.valueOf(scanner.nextLine().toUpperCase());
+            ChessBoard board = server.getGame(gameNumber).getBoard();
+            server.joinGame(authToken, gameNumber, team);
+            String returnStatement = String.format("You joined game %s as the %s team\n", gameNumber, team);
+            return returnStatement + drawBoard(team, board);
+        } catch (Exception e) {
+            return "Unable to join game. Please enter a valid game number\n" + help();
         }
     }
 

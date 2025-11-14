@@ -1,9 +1,11 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import datamodel.GameData;
 import datamodel.JoinData;
 import datamodel.UserData;
+import exception.ResponseException;
 import io.javalin.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
@@ -105,6 +107,13 @@ public class Server {
                 error(ctx, e);
             }
         });
+        server.get("game/{id}", ctx -> {
+            try {
+                getGame(ctx);
+            } catch (Exception e) {
+                error(ctx, e);
+            }
+        });
     }
 
     private void clear(Context ctx) throws Exception {
@@ -170,6 +179,13 @@ public class Server {
         var reqGame = serializer.fromJson(reqGameJson, JoinData.class);
         gameService.joinGame(authToken, reqGame);
         ctx.result("{}");
+    }
+
+    private void getGame(Context ctx) throws Exception {
+        var serializer = new Gson();
+        var req = Integer.parseInt(ctx.pathParam("id"));
+        var res = gameService.getGame(req);
+        ctx.result(serializer.toJson(res));
     }
 
     public int run(int desiredPort) {

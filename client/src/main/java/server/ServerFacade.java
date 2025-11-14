@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import datamodel.*;
 import exception.ResponseException;
@@ -83,6 +84,26 @@ public class ServerFacade {
             return wrapper.games;
         } catch (Exception e) {
             throw new Exception("Unable to list games: " + e.getMessage());
+        }
+    }
+
+    public void joinGame(String authToken, int gameNumber, ChessGame.TeamColor color) throws Exception {
+        var request = buildRequest("PUT", "/game", new JoinData(color, gameNumber), authToken);
+        var response = sendRequest(request);
+        try {
+            handleResponse(response, null);
+        } catch (Exception e) {
+            throw new Exception("Unable to join game: " + e.getMessage());
+        }
+    }
+
+    public ChessGame getGame(int gameNumber) throws Exception {
+        var request = buildRequest("GET", "/game/" + gameNumber, null, null);
+        var response = sendRequest(request);
+        try {
+            return handleResponse(response, ChessGame.class);
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
         }
     }
 
