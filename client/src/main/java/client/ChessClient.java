@@ -128,6 +128,9 @@ public class ChessClient {
     public String createGame() {
         Scanner scanner = new Scanner(System.in);
         try {
+            for (int i = 1; i <= server.listGames(authToken).size(); i++) {
+                gameNumbers.add(i);
+            }
             System.out.print("Name your game: ");
             String gameName = scanner.nextLine();
             server.createGame(authToken, gameName);
@@ -170,9 +173,10 @@ public class ChessClient {
             int gameNumber = Integer.parseInt(scanner.nextLine());
             System.out.print("Enter the team you would like to play as (White or Black): ");
             ChessGame.TeamColor team = ChessGame.TeamColor.valueOf(scanner.nextLine().toUpperCase());
-            ChessBoard board = server.getGame(gameNumber).game().getBoard();
+            GameData gameJoined = server.getGame(gameNumber);
+            ChessBoard board = gameJoined.game().getBoard();
             server.joinGame(authToken, gameNumber, team);
-            String returnStatement = String.format("You joined game %s as the %s team\n", gameNumber, team);
+            String returnStatement = String.format("You joined %s as the %s team\n", gameJoined.gameName(), team);
             return returnStatement + drawBoard(team, board);
         } catch (Exception e) {
             return "Unable to join game. Please enter a valid game number and empty team color.\n" + help();
@@ -184,8 +188,9 @@ public class ChessClient {
         try {
             System.out.print("Enter the game number you would like to observe: ");
             int gameNumber = Integer.parseInt(scanner.nextLine());
-            ChessBoard board = server.getGame(gameNumber).game().getBoard();
-            return String.format("You are now observing game %s\n", gameNumber) + drawBoard(ChessGame.TeamColor.WHITE, board);
+            GameData gameObserving = server.getGame(gameNumber);
+            ChessBoard board = gameObserving.game().getBoard();
+            return String.format("You are now observing %s\n", gameObserving.gameName()) + drawBoard(ChessGame.TeamColor.WHITE, board);
         } catch (Exception e) {
             return "Unable to observe game. Please enter a valid game number.\n" + help();
         }
@@ -203,9 +208,9 @@ public class ChessClient {
         return """
                 - Help
                 - Logout
-                - Create - create a game
-                - List - list all games
-                - Play - play a game
+                - Create - create a new game
+                - List - see games you can join
+                - Play - join a game
                 - Observe - observe a game
                 """;
     }
