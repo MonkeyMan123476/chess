@@ -71,7 +71,7 @@ public class ChessClient {
                     case "create" -> createGame();
                     case "list" -> listGames();
                     case "play" -> playGame();
-                    //case "observe" -> observeGame();
+                    case "observe" -> observeGame();
                     //for testing
                     case "drawwhite" -> drawBoard(ChessGame.TeamColor.WHITE, testDrawBoard);
                     case "drawblack" -> drawBoard(ChessGame.TeamColor.BLACK, testDrawBoard);
@@ -144,7 +144,7 @@ public class ChessClient {
     public String listGames() {
         try {
             ArrayList<GameData> gameList = server.listGames(authToken);
-            String listPrinted = "\n";
+            String listPrinted = "\n" + EscapeSequences.SET_TEXT_COLOR_MAGENTA;
             gameNumbers.clear();
             int counter = 1;
             for (GameData game : gameList) {
@@ -179,6 +179,18 @@ public class ChessClient {
             return returnStatement + drawBoard(team, board);
         } catch (Exception e) {
             return "Unable to join game. Please enter a valid game number and empty team color.\n" + help();
+        }
+    }
+
+    public String observeGame() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Enter the game number you would like to observe: ");
+            int gameNumber = Integer.parseInt(scanner.nextLine());
+            ChessBoard board = server.getGame(gameNumber).getBoard();
+            return String.format("You are now observing game %s\n", gameNumber) + drawBoard(ChessGame.TeamColor.WHITE, board);
+        } catch (Exception e) {
+            return "Unable to observe game. Please enter a valid game number.\n" + help();
         }
     }
 
