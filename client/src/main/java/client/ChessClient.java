@@ -13,12 +13,16 @@ public class ChessClient {
     private State state = State.SIGNEDOUT;
     private String authToken;
     private List<Integer> gameNumbers;
+    private int myGameID;
+    private ChessGame.TeamColor myTeam;
 
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacade(serverUrl);
         authToken = "";
         gameNumbers = new ArrayList<>();
+        myGameID = 0;
+        myTeam = null;
     }
 
     public void run() {
@@ -64,7 +68,7 @@ public class ChessClient {
                     case "quit" -> "quit";
                     default -> "♕ Welcome to Chess. Type Help to get started." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
-            } else {
+            } else if (state == State.SIGNEDIN){
                 return switch (cmd) {
                     case "help" -> help();
                     case "logout" -> logout();
@@ -74,7 +78,28 @@ public class ChessClient {
                     case "observe" -> observeGame();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
+            } else if (state == State.GAMEPLAY && server.getGame(myGameID).game().getTeamTurn() == myTeam) {
+                return switch (cmd) {
+                    case "help" -> help();
+                    case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard());
+                    default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
+                };
+            } else if (state == State.OBSERVING) {
+                return switch (cmd) {
+                    case "help" -> help();
+                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard());
+                    default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
+                };
+            } else if (state == State.GAMEPLAY) {
+                return switch (cmd) {
+                    case "help" -> help();
+                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard());
+                    //case "leave" -> leave();
+                    //case "resign" -> resign();
+                    default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
+                };
             }
+            return "broke the client bruh";
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -163,9 +188,9 @@ public class ChessClient {
                 listPrinted += "\n";
                 counter++;
             }
-            return listPrinted;
+            return listPrinted + EscapeSequences.SET_TEXT_COLOR_BLUE + help();
         } catch (Exception e) {
-            return "Unable to list games.";
+            return "Unable to list games." + EscapeSequences.SET_TEXT_COLOR_BLUE + help();
         }
     }
 
@@ -177,12 +202,15 @@ public class ChessClient {
             System.out.print("Enter the team you would like to play as (White or Black): ");
             ChessGame.TeamColor team = ChessGame.TeamColor.valueOf(scanner.nextLine().toUpperCase());
             GameData gameJoined = server.getGame(gameNumber);
+            myGameID = gameJoined.gameID();
+            myTeam = team;
             ChessBoard board = gameJoined.game().getBoard();
             server.joinGame(authToken, gameNumber, team);
+            state = State.GAMEPLAY;
             String returnStatement = String.format("You joined %s as the %s team\n", gameJoined.gameName(), team);
-            return returnStatement + drawBoard(team, board);
+            return returnStatement + drawBoard(team, board) + help();
         } catch (Exception e) {
-            return "Unable to join game. Please enter a valid game number and empty team color.\n" + help();
+            return "Unable to join game. Please enter a valid game number and empty team color.\n" + EscapeSequences.SET_TEXT_COLOR_BLUE + help();
         }
     }
 
@@ -192,29 +220,58 @@ public class ChessClient {
             System.out.print("Enter the game number you would like to observe: ");
             int gameNumber = Integer.parseInt(scanner.nextLine());
             GameData gameObserving = server.getGame(gameNumber);
+            myGameID = gameObserving.gameID();
+            myTeam = null;
             ChessBoard board = gameObserving.game().getBoard();
+            state = State.OBSERVING;
             return String.format("You are now observing %s\n", gameObserving.gameName()) + drawBoard(ChessGame.TeamColor.WHITE, board);
         } catch (Exception e) {
             return "Unable to observe game. Please enter a valid game number.\n" + help();
         }
     }
 
-    public String help() {
-        if (state == State.SIGNEDOUT) {
-            return """
-                    - Help
-                    - Quit
-                    - Login - to play chess
-                    - Register - to create an account
-                    """;
+    public String help(){
+        try {
+            if (state == State.SIGNEDOUT) {
+                return """
+                        - Help
+                        - Quit
+                        - Login - to play chess
+                        - Register - to create an account
+                        """;
+            } else if (state == State.SIGNEDIN) {
+                return """
+                        - Help
+                        - Logout
+                        - Create - create a new game
+                        - List - see games you can join
+                        - Play - join a game
+                        - Observe - observe a game
+                        """;
+            } else if (server.getGame(myGameID).game().getTeamTurn() == myTeam) {
+                return """
+                        - Help
+                        - Redraw - show the chess board
+                        - Leave - leave the game
+                        - Move - make a chess move
+                        - Resign - forfeit the game
+                        - Highlight - show legal moves
+                        """;
+            } else if (state == State.OBSERVING) {
+                return """
+                        - Help
+                        - Redraw - show the chess board
+                        - Leave - leave the game
+                        """;
+            }
+        } catch (Exception e) {
+            return "Client error. Thank you for your patience.\n" + help();
         }
         return """
                 - Help
-                - Logout
-                - Create - create a new game
-                - List - see games you can join
-                - Play - join a game
-                - Observe - observe a game
+                - Redraw - show the chess board
+                - Leave - leave the game
+                - Resign - forfeit the game
                 """;
     }
 
@@ -244,7 +301,7 @@ public class ChessClient {
             }
             drawnBoard += whiteColumnLabel();
         }
-        return drawnBoard;
+        return drawnBoard + EscapeSequences.SET_TEXT_COLOR_BLUE;
     }
 
     private String blackColumnLabel() {
