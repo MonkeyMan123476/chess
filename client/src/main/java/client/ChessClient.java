@@ -4,25 +4,31 @@ package client;
 import chess.*;
 import datamodel.GameData;
 import server.ServerFacade;
+import websocket.NotificationHandler;
+import websocket.WebSocketFacade;
 import ui.EscapeSequences;
 
 import java.util.*;
 
 public class ChessClient {
     private final ServerFacade server;
+    private final WebSocketFacade ws;
     private State state = State.SIGNEDOUT;
     private String authToken;
     private List<Integer> gameNumbers;
     private int myGameID;
     private ChessGame.TeamColor myTeam;
+    private String myUsername;
 
 
     public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacade(serverUrl);
+        ws = new WebSocketFacade(serverUrl, (NotificationHandler) this);
         authToken = "";
         gameNumbers = new ArrayList<>();
         myGameID = 0;
         myTeam = null;
+        myUsername = null;
     }
 
     public void run() {
@@ -115,6 +121,7 @@ public class ChessClient {
             String password = scanner.nextLine();
             authToken = server.login(username, password).authToken();
             state = State.SIGNEDIN;
+            myUsername = username;
             String returnStatement = String.format("You signed in as %s.\n", username);
             return returnStatement + help();
         } catch (Exception e) {
@@ -133,6 +140,7 @@ public class ChessClient {
             String email = scanner.nextLine();
             authToken = server.register(username, password, email).authToken();
             state = State.SIGNEDIN;
+            myUsername = username;
             String returnStatement = String.format("You registered and signed in as %s.\n", username);
             return returnStatement + help();
         } catch (Exception e) {
@@ -145,6 +153,7 @@ public class ChessClient {
             server.logout(authToken);
             authToken = "";
             state = State.SIGNEDOUT;
+            myUsername = null;
             return "You signed out.\n" + help();
         } catch (Exception e) {
             return "Unauthorized\n" + help();
@@ -208,6 +217,7 @@ public class ChessClient {
             ChessBoard board = gameJoined.game().getBoard();
             server.joinGame(authToken, gameNumber, team);
             state = State.GAMEPLAY;
+            ws.joinGame(authToken, myGameID);
             String returnStatement = String.format("You joined %s as the %s team\n", gameJoined.gameName(), team);
             return returnStatement + drawBoard(team, board) + help();
         } catch (Exception e) {

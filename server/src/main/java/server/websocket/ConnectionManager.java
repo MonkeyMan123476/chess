@@ -1,5 +1,6 @@
 package server.websocket;
 
+import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.ServerMessage;
 
@@ -7,24 +8,44 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
-    public final ConcurrentHashMap<Session, Session> connections = new ConcurrentHashMap<>();
 
-    public void add(Session session) {
-        connections.put(session, session);
+    public static class ConnectionInfo {
+        public Session session;
+        public String username;
+        public String authToken;
+        public int gameID;
+        public boolean isPlayer;
+    }
+
+    public final ConcurrentHashMap<Session, ConnectionInfo> connections = new ConcurrentHashMap<>();
+
+    public void add(Session session, String username, String token, int gameID, boolean isPlayer) {
+        ConnectionInfo info = new ConnectionInfo();
+        info.session = session;
+        info.username = username;
+        info.authToken = token;
+        info.gameID = gameID;
+        info.isPlayer = isPlayer;
+        connections.put(session, info);
     }
 
     public void remove(Session session) {
         connections.remove(session);
     }
 
-    public void broadcast(Session excludeSession, ServerMessage notification) throws IOException {
-        String msg = notification.toString();
-        for (Session c : connections.values()) {
-            if (c.isOpen()) {
-                if (!c.equals(excludeSession)) {
-                    c.getRemote().sendString(msg);
+    public void broadcast(int gameID, Session exclude, ServerMessage message) throws IOException {
+        String json = new Gson().toJson(message);
+
+        for (ConnectionInfo info : connections.values()) {
+            if (info.gameID == gameID && info.session.isOpen()) {
+                if (info.session != exclude) {
+                    info.session.getRemote().sendString(json);
                 }
             }
         }
+    }
+
+    public ConnectionInfo get(Session session) {
+        return connections.get(session);
     }
 }
