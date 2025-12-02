@@ -82,6 +82,7 @@ public class ChessClient {
                 return switch (cmd) {
                     case "help" -> help();
                     case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard());
+                    case "move" -> move();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             } else if (state == State.OBSERVING) {
@@ -185,7 +186,7 @@ public class ChessClient {
                 if (game.blackUsername() != null) {
                     listPrinted += game.blackUsername();
                 }
-                listPrinted += "\n";
+                listPrinted += "\n\n";
                 counter++;
             }
             return listPrinted + EscapeSequences.SET_TEXT_COLOR_BLUE + help();
@@ -228,6 +229,43 @@ public class ChessClient {
         } catch (Exception e) {
             return "Unable to observe game. Please enter a valid game number.\n" + help();
         }
+    }
+
+    public String move() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Please enter a chess move (example: a2a4): ");
+            String moveInput = scanner.nextLine().trim().toLowerCase();
+            if (moveInput.length() < 4) {
+                return "Invalid input. Please enter a move in a format similar to a2a4.\n" + help();
+            }
+            int pieceColumn = columnToInteger(String.valueOf(moveInput.charAt(0)));
+            int pieceRow = Character.getNumericValue(moveInput.charAt(1));
+            int positionColumn = columnToInteger(String.valueOf(moveInput.charAt(2)));
+            int positionRow = Character.getNumericValue(moveInput.charAt(3));
+            ChessPosition oldPosition = new ChessPosition(pieceRow, pieceColumn);
+            ChessPiece movingPiece = server.getGame(myGameID).game().getBoard().getPiece(oldPosition);
+            ChessPosition newPosition = new ChessPosition(positionRow, positionColumn);
+            server.getGame(myGameID).game().makeMove(new ChessMove(oldPosition, newPosition, ChessPiece.PieceType.QUEEN));
+            String returnStatement = "You successfully moved " + movingPiece.getTeamColor() + movingPiece.getPieceType();
+            return returnStatement + help();
+        } catch (Exception e) {
+            return "Unable to move piece. Please select a valid piece and square to move to.\n" + help();
+        }
+    }
+
+    public int columnToInteger (String columnLetter) {
+        return switch (columnLetter) {
+            case "a" -> 1;
+            case "b" -> 2;
+            case "c" -> 3;
+            case "d" -> 4;
+            case "e" -> 5;
+            case "f" -> 6;
+            case "g" -> 7;
+            case "h" -> 8;
+            default -> 0;
+        };
     }
 
     public String help(){
