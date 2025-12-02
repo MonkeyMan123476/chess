@@ -7,10 +7,11 @@ import server.ServerFacade;
 import websocket.NotificationHandler;
 import websocket.WebSocketFacade;
 import ui.EscapeSequences;
+import websocket.messages.NotificationMessage;
 
 import java.util.*;
 
-public class ChessClient {
+public class ChessClient implements NotificationHandler {
     private final ServerFacade server;
     private final WebSocketFacade ws;
     private State state = State.SIGNEDOUT;
@@ -430,5 +431,11 @@ public class ChessClient {
             default:
                 return EscapeSequences.EMPTY;
         }
+    }
+
+    @Override
+    public void notify(NotificationMessage notification) {
+        System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + notification.message);
+        printPrompt();
     }
 }
