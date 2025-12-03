@@ -261,9 +261,15 @@ public class ChessClient implements NotificationHandler {
             ChessPosition oldPosition = new ChessPosition(pieceRow, pieceColumn);
             ChessPiece movingPiece = server.getGame(myGameID).game().getBoard().getPiece(oldPosition);
             ChessPosition newPosition = new ChessPosition(positionRow, positionColumn);
-            server.getGame(myGameID).game().makeMove(new ChessMove(oldPosition, newPosition, ChessPiece.PieceType.QUEEN));
-            String returnStatement = "You successfully moved " + movingPiece.getTeamColor() + movingPiece.getPieceType();
-            return returnStatement + help();
+            ChessMove attemptedMove = new ChessMove(oldPosition, newPosition, null);
+            try {
+                ws.makeMove(authToken, myGameID, attemptedMove);
+                String returnStatement = "You successfully moved " + movingPiece.getTeamColor() + movingPiece.getPieceType();
+                return returnStatement + "\n" + help();
+            } catch (Exception e) {
+                throw new Exception();
+            }
+
         } catch (Exception e) {
             return "Unable to move piece. Please select a valid piece and square to move to.\n" + help();
         }
