@@ -17,4 +17,6 @@ public interface DataAccess {
     GameData getGame(int gameID) throws DataAccessException;
     void saveGame(GameData game) throws DataAccessException;
     void updateGame(ChessGame.TeamColor color, int gameID, String username, ChessMove move) throws DataAccessException;
+
+    void removePlayer(int gameID, String username) throws DataAccessException;
 }

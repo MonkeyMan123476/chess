@@ -99,15 +99,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData gameData = dataAccess.getGame(info.gameID);
 
         if (gameData != null) {
-            GameData updatedGame;
             if (info.username.equals(gameData.whiteUsername())) {
-                updatedGame = new GameData(gameData.gameID(), null, gameData.blackUsername(), gameData.gameName(), gameData.game());
-                dataAccess.updateGame(ChessGame.TeamColor.WHITE, gameData.gameID(), null, null);
+                dataAccess.removePlayer(gameData.gameID(), gameData.whiteUsername());
             } else if (info.username.equals(gameData.blackUsername())) {
-                updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
-                dataAccess.updateGame(ChessGame.TeamColor.BLACK, gameData.gameID(), null, null);
-            } else {
-                updatedGame = gameData;
+                dataAccess.removePlayer(gameData.gameID(), gameData.blackUsername());
             }
         }
 

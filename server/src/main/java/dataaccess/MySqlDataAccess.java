@@ -204,6 +204,35 @@ public class MySqlDataAccess implements DataAccess {
         }
     }
 
+    @Override
+    public void removePlayer(int gameID, String username) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            GameData gameData = getGame(gameID);
+
+            if (gameData == null) {
+                throw new DataAccessException("Game does not exist");
+            }
+
+            String white = gameData.whiteUsername();
+            String black = gameData.blackUsername();
+
+            if (username.equals(white)) {
+                try (PreparedStatement ps = conn.prepareStatement("UPDATE games SET whiteUsername=NULL WHERE gameID=?")) {
+                    ps.setInt(1, gameID);
+                    ps.executeUpdate();
+                }
+            } else if (username.equals(black)) {
+                try (PreparedStatement ps = conn.prepareStatement("UPDATE games SET blackUsername=NULL WHERE gameID=?")) {
+                    ps.setInt(1, gameID);
+                    ps.executeUpdate();
+                }
+            }
+
+        } catch (Exception e) {
+            throw new DataAccessException("Unable to remove player: " + e.getMessage());
+        }
+    }
+
     private void addUsername(Connection conn, String statement, String username, int gameID) throws DataAccessException {
         try (PreparedStatement ps = conn.prepareStatement(statement)) {
             ps.setString(1, username);

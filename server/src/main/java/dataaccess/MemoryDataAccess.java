@@ -76,4 +76,9 @@ public class MemoryDataAccess implements DataAccess {
             games.put(gameID, new GameData(gameID, oldGameVersion.whiteUsername(), username, oldGameVersion.gameName(), getGame(gameID).game()));
         }
     }
+
+    @Override
+    public void removePlayer(int gameID, String username) throws DataAccessException {
+
+    }
 }
