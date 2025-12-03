@@ -3,6 +3,7 @@ package client;
 
 import chess.*;
 import datamodel.GameData;
+import exception.ResponseException;
 import server.ServerFacade;
 import websocket.NotificationHandler;
 import websocket.WebSocketFacade;
@@ -89,6 +90,7 @@ public class ChessClient implements NotificationHandler {
                 return switch (cmd) {
                     case "help" -> help();
                     case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard());
+                    case "leave" -> leave();
                     case "move" -> move();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
@@ -96,13 +98,14 @@ public class ChessClient implements NotificationHandler {
                 return switch (cmd) {
                     case "help" -> help();
                     case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard());
+                    case "leave" -> leave();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             } else if (state == State.GAMEPLAY) {
                 return switch (cmd) {
                     case "help" -> help();
                     case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard());
-                    //case "leave" -> leave();
+                    case "leave" -> leave();
                     //case "resign" -> resign();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
@@ -184,7 +187,7 @@ public class ChessClient implements NotificationHandler {
             gameNumbers.clear();
             int counter = 1;
             if (gameList.isEmpty()) {
-                listPrinted += "No games have been created.\n";
+                listPrinted += "No games have been created.\n\n";
             }
             for (GameData game : gameList) {
                 gameNumbers.add(counter);
@@ -196,10 +199,10 @@ public class ChessClient implements NotificationHandler {
                 if (game.blackUsername() != null) {
                     listPrinted += game.blackUsername();
                 }
-                listPrinted += "\n\n";
+                listPrinted += "\n";
                 counter++;
             }
-            return listPrinted + EscapeSequences.SET_TEXT_COLOR_BLUE + help();
+            return listPrinted + "\n" + EscapeSequences.SET_TEXT_COLOR_BLUE + help();
         } catch (Exception e) {
             return "Unable to list games." + EscapeSequences.SET_TEXT_COLOR_BLUE + help();
         }
@@ -263,6 +266,12 @@ public class ChessClient implements NotificationHandler {
         } catch (Exception e) {
             return "Unable to move piece. Please select a valid piece and square to move to.\n" + help();
         }
+    }
+
+    public String leave() throws ResponseException {
+        ws.leaveGame(authToken, myGameID);
+        state = State.SIGNEDIN;
+        return String.format("%s left the game.", myUsername);
     }
 
     public int columnToInteger (String columnLetter) {

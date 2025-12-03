@@ -33,13 +33,13 @@ public class ConnectionManager {
         connections.remove(session);
     }
 
-    public void broadcast(int gameID, Session exclude, ServerMessage message) throws IOException {
-        String json = new Gson().toJson(message);
+    public void broadcast(Session excludeSession, ServerMessage message) throws IOException {
+        String json = message.toString();
 
-        for (ConnectionInfo info : connections.values()) {
-            if (info.gameID == gameID && info.session.isOpen()) {
-                if (info.session != exclude) {
-                    info.session.getRemote().sendString(json);
+        for (ConnectionInfo c : connections.values()) {
+            if (c.session.isOpen()) {
+                if (c.session != excludeSession) {
+                    c.session.getRemote().sendString(json);
                 }
             }
         }

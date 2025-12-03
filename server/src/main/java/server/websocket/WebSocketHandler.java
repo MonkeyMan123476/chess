@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -66,21 +67,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if (user == null || gameData == null) {
             String message = "Error: invalid authToken or gameID";
             session.getRemote().sendString(
-                    new Gson().toJson(new NotificationMessage(message)) // or use a dedicated ErrorMessage class
+                    new Gson().toJson(new NotificationMessage(message))
             );
             return;
         }
 
         String username = user.username();
-        boolean isPlayer =
-                username.equals(gameData.whiteUsername()) ||
-                        username.equals(gameData.blackUsername());
+        boolean isPlayer = username.equals(gameData.whiteUsername()) || username.equals(gameData.blackUsername());
 
         connections.add(session, username, cmd.getAuthToken(), cmd.getGameID(), isPlayer);
-
-        session.getRemote().sendString(
-                new Gson().toJson(new LoadGameMessage(gameData.game()))
-        );
+        session.getRemote().sendString(new Gson().toJson(new LoadGameMessage(gameData.game())));
 
         String note;
         if (isPlayer) {
@@ -90,16 +86,31 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             note = username + " is observing the game";
         }
 
-        connections.broadcast(cmd.getGameID(), session, new NotificationMessage(note));
+        connections.broadcast(session, new NotificationMessage(note));
     }
 
-    private void leave(UserGameCommand cmd, Session session) throws IOException {
+    private void leave(UserGameCommand cmd, Session session) throws IOException, DataAccessException {
         var info = connections.get(session);
         if (info == null) return;
 
         connections.remove(session);
 
-        connections.broadcast(info.gameID, session,
-                new NotificationMessage(info.username + " left the game"));
+        DataAccess dataAccess = new MySqlDataAccess();
+        GameData gameData = dataAccess.getGame(info.gameID);
+
+        if (gameData != null) {
+            GameData updatedGame;
+            if (info.username.equals(gameData.whiteUsername())) {
+                updatedGame = new GameData(gameData.gameID(), null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+                dataAccess.updateGame(ChessGame.TeamColor.WHITE, gameData.gameID(), null, null);
+            } else if (info.username.equals(gameData.blackUsername())) {
+                updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
+                dataAccess.updateGame(ChessGame.TeamColor.BLACK, gameData.gameID(), null, null);
+            } else {
+                updatedGame = gameData;
+            }
+        }
+
+        connections.broadcast(session, new NotificationMessage(info.username + " left the game"));
     }
 }
