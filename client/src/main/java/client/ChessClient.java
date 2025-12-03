@@ -239,6 +239,7 @@ public class ChessClient implements NotificationHandler {
             myTeam = null;
             ChessBoard board = gameObserving.game().getBoard();
             state = State.OBSERVING;
+            ws.observeGame(authToken, myGameID);
             return String.format("You are now observing %s\n", gameObserving.gameName()) + drawBoard(ChessGame.TeamColor.WHITE, board);
         } catch (Exception e) {
             return "Unable to observe game. Please enter a valid game number.\n" + help();
