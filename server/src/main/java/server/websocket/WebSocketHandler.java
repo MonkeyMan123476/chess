@@ -155,7 +155,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             dataAccess.updateGame(playerColor, info.gameID, info.username, move);
         } catch (DataAccessException e) {
             try {
-                session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Invalid move: ")));
+                session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Invalid move")));
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
@@ -163,9 +163,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
 
         GameData updatedGameData = dataAccess.getGame(info.gameID);
-        connections.broadcast(session, new LoadGameMessage(updatedGameData.game()));
-        String notificationText = info.username + " moved from " +
-                move.getStartPosition() + " to " + move.getEndPosition();
+        String notificationText = info.username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
         connections.broadcast(session, new NotificationMessage(notificationText));
+        connections.broadcast(session, new LoadGameMessage(updatedGameData.game()));
     }
 }

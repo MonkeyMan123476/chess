@@ -8,6 +8,8 @@ import server.ServerFacade;
 import websocket.NotificationHandler;
 import websocket.WebSocketFacade;
 import ui.EscapeSequences;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
 import java.util.*;
@@ -222,8 +224,7 @@ public class ChessClient implements NotificationHandler {
             server.joinGame(authToken, gameNumber, team);
             state = State.GAMEPLAY;
             ws.joinGame(authToken, myGameID);
-            String returnStatement = String.format("You joined %s as the %s team\n", gameJoined.gameName(), team);
-            return returnStatement + drawBoard(team, board) + help();
+            return String.format("You joined %s as the %s team\n", gameJoined.gameName(), team);
         } catch (Exception e) {
             return "Unable to join game. Please enter a valid game number and empty team color.\n" + EscapeSequences.SET_TEXT_COLOR_BLUE + help();
         }
@@ -262,14 +263,8 @@ public class ChessClient implements NotificationHandler {
             ChessPiece movingPiece = server.getGame(myGameID).game().getBoard().getPiece(oldPosition);
             ChessPosition newPosition = new ChessPosition(positionRow, positionColumn);
             ChessMove attemptedMove = new ChessMove(oldPosition, newPosition, null);
-            try {
-                ws.makeMove(authToken, myGameID, attemptedMove);
-                String returnStatement = "You successfully moved " + movingPiece.getTeamColor() + movingPiece.getPieceType();
-                return returnStatement + "\n" + help();
-            } catch (Exception e) {
-                throw new Exception();
-            }
-
+            ws.makeMove(authToken, myGameID, attemptedMove);
+            return "Move sent to server. Waiting for confirmation..." + drawBoard(myTeam, server.getGame(myGameID).game().getBoard());
         } catch (Exception e) {
             return "Unable to move piece. Please select a valid piece and square to move to.\n" + help();
         }
@@ -342,7 +337,7 @@ public class ChessClient implements NotificationHandler {
 
 
     private String drawBoard(ChessGame.TeamColor perspective, ChessBoard board) {
-        String drawnBoard = "";
+        String drawnBoard = "\n";
         if (perspective == ChessGame.TeamColor.BLACK) {
             drawnBoard += blackColumnLabel();
             for (int row = 1; row <= 8; row++) {
@@ -451,7 +446,19 @@ public class ChessClient implements NotificationHandler {
 
     @Override
     public void notify(NotificationMessage notification) {
-        System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + notification.message);
+        System.out.println(EscapeSequences.SET_TEXT_COLOR_MAGENTA + notification.message);
         printPrompt();
+    }
+
+    @Override
+    public void loadGame(LoadGameMessage loadGameMessage) {
+        System.out.println(drawBoard(myTeam, loadGameMessage.game.getBoard()));
+        System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + help());
+        printPrompt();
+    }
+
+    @Override
+    public void error(ErrorMessage errorMessage) {
+        System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + errorMessage.errorMessage);
     }
 }
