@@ -54,7 +54,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         AuthData authData = dataAccess.getAuth(cmd.getAuthToken());
         if (authData == null) {
             session.getRemote().sendString(
-                    new Gson().toJson(new ResponseException(ResponseException.Code.ServerError, "Error: invalid authToken"))
+                    new Gson().toJson(new ErrorMessage("Error: invalid authToken"))
             );
             return;
         }
@@ -62,9 +62,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData gameData = dataAccess.getGame(cmd.getGameID());
 
         if (user == null || gameData == null) {
-            String message = "Error: invalid authToken or gameID";
             session.getRemote().sendString(
-                    new Gson().toJson(new NotificationMessage(message))
+                    new Gson().toJson(new ErrorMessage("Error: invalid authToken or gameID"))
             );
             return;
         }

@@ -112,7 +112,7 @@ public class ChessClient implements NotificationHandler {
             }
             return "broke the client bruh";
         } catch (Exception e) {
-            return e.getMessage();
+            return "Error: " + e.getMessage() + "\n" + help();
         }
     }
 
