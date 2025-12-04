@@ -78,6 +78,11 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public void saveUpdatedGame(ChessGame game, int gameID) throws DataAccessException {
+
+    }
+
+    @Override
     public void removePlayer(int gameID, String username) throws DataAccessException {
 
     }

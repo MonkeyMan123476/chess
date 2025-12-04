@@ -94,7 +94,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             note = username + " is observing the game";
         }
 
-        connections.broadcast(session, new NotificationMessage(note));
+        connections.broadcast(session, new NotificationMessage(note), gameData.gameID());
     }
 
     private void leave(UserGameCommand cmd, Session session) throws IOException, DataAccessException {
@@ -116,7 +116,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
         }
 
-        connections.broadcast(session, new NotificationMessage(info.username + " left the game"));
+        connections.broadcast(session, new NotificationMessage(info.username + " left the game"), gameData.gameID());
     }
 
     private void resign(UserGameCommand cmd, Session session) throws DataAccessException, IOException {
@@ -126,20 +126,26 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         DataAccess dataAccess = new MySqlDataAccess();
         GameData gameData = dataAccess.getGame(info.gameID);
+        ChessGame game = gameData.game();
+
+        if (game.getGameState() == ChessGame.GameState.RESIGNED
+                || game.getGameState() == ChessGame.GameState.CHECKMATE
+                || game.getGameState() == ChessGame.GameState.STALEMATE) {
+            session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Cannot resign, game is already over.")));
+            return;
+        }
 
         boolean isPlayer = info.username.equals(gameData.whiteUsername()) || info.username.equals(gameData.blackUsername());
         if (!isPlayer) {
             session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Only players can resign")));
             return;
-            // testing push because it failed last time
         }
 
-        ChessGame game = gameData.game();
         game.setGameState(ChessGame.GameState.RESIGNED);
-        dataAccess.updateGame(null, info.gameID, null, null);
+        dataAccess.saveUpdatedGame(game, gameData.gameID());
 
 
-        connections.broadcastAll(new NotificationMessage(info.username + " has resigned and forfeited the game. Game Over."));
+        connections.broadcastAll(new NotificationMessage(info.username + " has resigned and forfeited the game. Game Over."), gameData.gameID());
     }
 
     private void makeMove(MakeMoveCommand cmd, Session session) throws DataAccessException, IOException {
@@ -200,15 +206,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame updatedGame = updatedGameData.game();
 
         String notificationText = info.username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
-        connections.broadcast(session, new NotificationMessage(notificationText));
+        connections.broadcast(session, new NotificationMessage(notificationText), gameData.gameID());
         String otherUsername = info.username.equals(gameData.whiteUsername()) ? updatedGameData.blackUsername() : updatedGameData.whiteUsername();
 
         switch (updatedGame.getGameState()) {
-            case CHECK -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in check."));
-            case CHECKMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in checkmate. " + info.username + " wins the game!"));
-            case STALEMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in stalemate. The game has ended in a draw!"));
+            case CHECK -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in check."), gameData.gameID());
+            case CHECKMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in checkmate. " + info.username + " wins the game!"), gameData.gameID());
+            case STALEMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in stalemate. The game has ended in a draw!"), gameData.gameID());
         }
 
-        connections.broadcastAll(new LoadGameMessage(updatedGame));
+        connections.broadcastAll(new LoadGameMessage(updatedGame), gameData.gameID());
     }
 }

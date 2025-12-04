@@ -33,10 +33,10 @@ public class ConnectionManager {
         connections.remove(session);
     }
 
-    public void broadcast(Session excludeSession, ServerMessage message) throws IOException {
+    public void broadcast(Session excludeSession, ServerMessage message, int gameID) throws IOException {
         String json = new Gson().toJson(message);
         for (ConnectionInfo c : connections.values()) {
-            if (c.session.isOpen()) {
+            if (c.session.isOpen() && c.gameID == gameID) {
                 if (c.session != excludeSession) {
                     c.session.getRemote().sendString(json);
                 }
@@ -44,10 +44,10 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcastAll(ServerMessage message) throws IOException {
+    public void broadcastAll(ServerMessage message, int gameID) throws IOException {
         String json = new Gson().toJson(message);
         for (ConnectionInfo c : connections.values()) {
-            if (c.session.isOpen()) {
+            if (c.session.isOpen() && c.gameID == gameID) {
                 c.session.getRemote().sendString(json);
             }
         }
