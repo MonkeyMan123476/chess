@@ -14,7 +14,7 @@ import java.util.Objects;
 public class ChessGame {
 
     TeamColor teamTurn = TeamColor.WHITE;
-    GameState gameState = GameState.PLAYING;
+    GameState gameState = null;
     ChessBoard myBoard = new ChessBoard();
     public ChessGame() {
         this.myBoard.resetBoard();
@@ -59,9 +59,9 @@ public class ChessGame {
     }
 
     public enum GameState {
-        PLAYING,
-        CHECKMATE,
-        STALEMATE
+        CHECK,
+        STALEMATE,
+        CHECKMATE
     }
 
     /**
@@ -101,6 +101,10 @@ public class ChessGame {
                 gameState = GameState.CHECKMATE;
             } else if (isInStalemate(getTeamTurn())) {
                 gameState = GameState.STALEMATE;
+            } else if (isInCheck(getTeamTurn())) {
+                gameState = GameState.CHECK;
+            } else {
+                gameState = null;
             }
         } else if (willBeInCheck(move)){
             throw new InvalidMoveException("King may not remain in check");
