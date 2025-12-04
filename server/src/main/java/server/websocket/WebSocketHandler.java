@@ -173,6 +173,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData updatedGameData = dataAccess.getGame(info.gameID);
         String notificationText = info.username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
         connections.broadcast(session, new NotificationMessage(notificationText));
+        String otherUsername = info.username.equals(gameData.whiteUsername()) ? updatedGameData.blackUsername() : updatedGameData.whiteUsername();
+        if (updatedGameData.game().getGameState() == ChessGame.GameState.CHECK) {
+            connections.broadcastAll(new NotificationMessage(otherUsername + " is in check."));
+        } else if (updatedGameData.game().getGameState() == ChessGame.GameState.CHECKMATE) {
+            connections.broadcastAll(new NotificationMessage(otherUsername + " is in checkmate. " + info.username + " wins the game!"));
+            dataAccess.getGame(info.gameID).game().setTeamTurn(null);
+        } else if (updatedGameData.game().getGameState() == ChessGame.GameState.STALEMATE) {
+            connections.broadcastAll(new NotificationMessage(otherUsername + " is in stalemate. The game has ended in a draw!"));
+            dataAccess.getGame(info.gameID).game().setTeamTurn(null);
+        }
         connections.broadcastAll(new LoadGameMessage(updatedGameData.game()));
     }
 }

@@ -36,6 +36,10 @@ public class ChessGame {
         teamTurn = team;
     }
 
+    public GameState getGameState() {
+        return gameState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
