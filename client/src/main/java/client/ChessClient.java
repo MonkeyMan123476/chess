@@ -320,7 +320,9 @@ public class ChessClient implements NotificationHandler {
 
     public int columnToInteger(String columnLetter) {
         char c = columnLetter.toLowerCase().charAt(0);
-        if (c < 'a' || c > 'h') return 0;
+        if (c < 'a' || c > 'h') {
+            return 0;
+        }
         return c - 'a' + 1;
     }
 
