@@ -94,6 +94,7 @@ public class ChessClient implements NotificationHandler {
                     case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), null);
                     case "leave" -> leave();
                     case "move" -> move();
+                    case "resign" -> resign();
                     case "highlight" -> highlight();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
@@ -109,7 +110,7 @@ public class ChessClient implements NotificationHandler {
                     case "help" -> help();
                     case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), null);
                     case "leave" -> leave();
-                    //case "resign" -> resign();
+                    case "resign" -> resign();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             }
@@ -302,7 +303,23 @@ public class ChessClient implements NotificationHandler {
     public String leave() throws ResponseException {
         ws.leaveGame(authToken, myGameID);
         state = State.SIGNEDIN;
-        return String.format("%s left the game.", myUsername);
+        return "You left the game.\n" + help();
+    }
+
+    public String resign() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Please type 'resign' again to confirm your resignation: ");
+            String confirmation = scanner.nextLine().toLowerCase();
+            if (!confirmation.contains("resign")) {
+                return "Resignation cancelled.\n" + help();
+            }
+            ws.resign(authToken, myGameID);
+            state = State.GAMEOVER;
+            return "You resigned and forfeited the game.";
+        } catch (Exception e) {
+            return "Unable to resign.\n" + help();
+        }
     }
 
     public int columnToInteger (String columnLetter) {
@@ -513,7 +530,7 @@ public class ChessClient implements NotificationHandler {
     @Override
     public void loadGame(LoadGameMessage loadGameMessage) {
         ChessGame.GameState stateOfGame = loadGameMessage.game.getGameState();
-        if (stateOfGame == ChessGame.GameState.CHECKMATE || stateOfGame == ChessGame.GameState.STALEMATE) {
+        if (stateOfGame == ChessGame.GameState.CHECKMATE || stateOfGame == ChessGame.GameState.STALEMATE || stateOfGame == ChessGame.GameState.RESIGNED) {
             state = State.GAMEOVER;
         }
         System.out.println(drawBoard(myTeam, loadGameMessage.game.getBoard(), null));

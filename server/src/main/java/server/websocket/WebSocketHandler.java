@@ -50,6 +50,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     MakeMoveCommand action = gson.fromJson(ctx.message(), MakeMoveCommand.class);
                     makeMove(action, ctx.session);
                 }
+                case RESIGN -> {
+                    UserGameCommand action = gson.fromJson(ctx.message(), UserGameCommand.class);
+                    resign(action, ctx.session);
+                }
             }
         } catch (IOException | DataAccessException ex) {
             ex.printStackTrace();
@@ -65,18 +69,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         DataAccess dataAccess = new MySqlDataAccess();
         AuthData authData = dataAccess.getAuth(cmd.getAuthToken());
         if (authData == null) {
-            session.getRemote().sendString(
-                    new Gson().toJson(new ErrorMessage("Error: invalid authToken"))
-            );
+            session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Error: invalid authToken")));
             return;
         }
         UserData user = dataAccess.getUser(authData.username());
         GameData gameData = dataAccess.getGame(cmd.getGameID());
 
         if (user == null || gameData == null) {
-            session.getRemote().sendString(
-                    new Gson().toJson(new ErrorMessage("Error: invalid authToken or gameID"))
-            );
+            session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Error: invalid authToken or gameID")));
             return;
         }
 
@@ -99,7 +99,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void leave(UserGameCommand cmd, Session session) throws IOException, DataAccessException {
         var info = connections.get(session);
-        if (info == null) return;
+        if (info == null) {
+            return;
+        }
 
         connections.remove(session);
 
@@ -117,18 +119,40 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcast(session, new NotificationMessage(info.username + " left the game"));
     }
 
+    private void resign(UserGameCommand cmd, Session session) throws DataAccessException, IOException {
+        var info = connections.get(session);
+        if (info == null) {
+            return;
+        }
+        DataAccess dataAccess = new MySqlDataAccess();
+        GameData gameData = dataAccess.getGame(info.gameID);
+
+        boolean isPlayer = info.username.equals(gameData.whiteUsername()) || info.username.equals(gameData.blackUsername());
+        if (!isPlayer) {
+            session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Only players can resign")));
+            return;
+        }
+
+        ChessGame game = gameData.game();
+        game.setGameState(ChessGame.GameState.RESIGNED);
+        dataAccess.updateGame(null, info.gameID, null, null);
+
+
+        connections.broadcastAll(new NotificationMessage(info.username + " has resigned and forfeited the game. Game Over."));
+    }
+
     private void makeMove(MakeMoveCommand cmd, Session session) throws DataAccessException, IOException {
         var info = connections.get(session);
-        if (info == null) return;
+        if (info == null) {
+            return;
+        }
 
         DataAccess dataAccess = new MySqlDataAccess();
         Gson gson = new Gson();
 
         AuthData authData = dataAccess.getAuth(cmd.getAuthToken());
         if (authData == null) {
-            session.getRemote().sendString(
-                    new Gson().toJson(new ErrorMessage("Error: invalid authToken"))
-            );
+            session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Error: invalid authToken")));
             return;
         }
 
@@ -136,7 +160,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if (gameData == null) return;
         ChessGame game = gameData.game();
 
-        if (game.getGameState() == ChessGame.GameState.CHECKMATE || game.getGameState() == ChessGame.GameState.STALEMATE) {
+        if (game.getGameState() == ChessGame.GameState.CHECKMATE || game.getGameState() == ChessGame.GameState.STALEMATE || game.getGameState() == ChessGame.GameState.RESIGNED) {
 
             session.getRemote().sendString(new Gson().toJson(new ErrorMessage("The game has ended.")));
             return;
@@ -184,6 +208,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             case STALEMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in stalemate. The game has ended in a draw!"));
         }
 
-        connections.broadcastAll(new LoadGameMessage(updatedGameData.game()));
+        connections.broadcastAll(new LoadGameMessage(updatedGame));
     }
 }

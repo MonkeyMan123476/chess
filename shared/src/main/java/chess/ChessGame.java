@@ -40,6 +40,8 @@ public class ChessGame {
         return gameState;
     }
 
+    public void setGameState(GameState state) { gameState = state; }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -66,7 +68,8 @@ public class ChessGame {
         CHECK,
         STALEMATE,
         CHECKMATE,
-        NORMAL
+        NORMAL,
+        RESIGNED
     }
 
     /**
@@ -96,6 +99,9 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        if (gameState == GameState.RESIGNED) {
+            throw new InvalidMoveException("Game has ended due to resignation");
+        }
         if (getBoard().getPiece(move.getStartPosition()) == null) {
             throw new InvalidMoveException("No piece to move");
         } else if (getBoard().getPiece(move.getStartPosition()).getTeamColor() != getTeamTurn()) {
@@ -191,10 +197,8 @@ public class ChessGame {
             getBoard().squares[oldPosition.getRow() - 1][oldPosition.getColumn() - 1] = null;
         }
         // Switch turns
-        if (getTeamTurn() == TeamColor.WHITE) {
-            teamTurn = TeamColor.BLACK;
-        } else if (getTeamTurn() == TeamColor.BLACK){
-            teamTurn = TeamColor.WHITE;
+        if (gameState == GameState.NORMAL || gameState == GameState.CHECK) {
+            teamTurn = (getTeamTurn() == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
         }
     }
 
