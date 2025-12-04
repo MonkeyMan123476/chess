@@ -122,6 +122,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if (info == null) return;
 
         DataAccess dataAccess = new MySqlDataAccess();
+        AuthData authData = dataAccess.getAuth(cmd.getAuthToken());
+        if (authData == null) {
+            session.getRemote().sendString(
+                    new Gson().toJson(new ErrorMessage("Error: invalid authToken"))
+            );
+            return;
+        }
+
         GameData gameData = dataAccess.getGame(info.gameID);
         if (gameData == null) return;
 
