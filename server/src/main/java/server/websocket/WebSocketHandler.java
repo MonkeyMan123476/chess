@@ -2,6 +2,7 @@ package server.websocket;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPosition;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
@@ -164,7 +165,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
 
         GameData gameData = dataAccess.getGame(info.gameID);
-        if (gameData == null) return;
+        if (gameData == null) {
+            return;
+        }
         ChessGame game = gameData.game();
 
         if (game.getGameState() == ChessGame.GameState.CHECKMATE || game.getGameState() == ChessGame.GameState.STALEMATE || game.getGameState() == ChessGame.GameState.RESIGNED) {
@@ -205,7 +208,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData updatedGameData = dataAccess.getGame(info.gameID);
         ChessGame updatedGame = updatedGameData.game();
 
-        String notificationText = info.username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
+        String from = posToAlgebraic(move.getStartPosition());
+        String to   = posToAlgebraic(move.getEndPosition());
+        String notificationText = info.username + " moved " + from + " to " + to;
         connections.broadcast(session, new NotificationMessage(notificationText), gameData.gameID());
         String otherUsername = info.username.equals(gameData.whiteUsername()) ? updatedGameData.blackUsername() : updatedGameData.whiteUsername();
 
@@ -216,5 +221,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
 
         connections.broadcastAll(new LoadGameMessage(updatedGame), gameData.gameID());
+    }
+
+    private String posToAlgebraic(ChessPosition pos) {
+        char file = (char) ('a' + (pos.getColumn() - 1));
+        int rank = pos.getRow();
+        return "" + file + rank;
     }
 }

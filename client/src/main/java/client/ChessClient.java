@@ -1,16 +1,12 @@
 package client;
 
-
 import chess.*;
 import datamodel.GameData;
 import exception.ResponseException;
 import server.ServerFacade;
-import websocket.NotificationHandler;
-import websocket.WebSocketFacade;
+import websocket.*;
 import ui.EscapeSequences;
-import websocket.messages.ErrorMessage;
-import websocket.messages.LoadGameMessage;
-import websocket.messages.NotificationMessage;
+import websocket.messages.*;
 
 import java.util.*;
 
