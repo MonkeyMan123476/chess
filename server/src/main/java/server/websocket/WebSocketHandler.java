@@ -122,6 +122,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if (info == null) return;
 
         DataAccess dataAccess = new MySqlDataAccess();
+        Gson gson = new Gson();
+
         AuthData authData = dataAccess.getAuth(cmd.getAuthToken());
         if (authData == null) {
             session.getRemote().sendString(
@@ -132,6 +134,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         GameData gameData = dataAccess.getGame(info.gameID);
         if (gameData == null) return;
+        ChessGame game = gameData.game();
+
+        if (game.getGameState() == ChessGame.GameState.CHECKMATE || game.getGameState() == ChessGame.GameState.STALEMATE) {
+
+            session.getRemote().sendString(new Gson().toJson(new ErrorMessage("The game has ended.")));
+            return;
+        }
 
         boolean isPlayer = info.username.equals(gameData.whiteUsername()) || info.username.equals(gameData.blackUsername());
         if (!isPlayer) {
@@ -144,18 +153,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
 
         ChessMove move = cmd.getMove();
-        ChessGame game = gameData.game();
-
-        ChessGame.TeamColor playerColor = info.username.equals(gameData.whiteUsername())
-                ? ChessGame.TeamColor.WHITE
-                : ChessGame.TeamColor.BLACK;
+        ChessGame.TeamColor playerColor = info.username.equals(gameData.whiteUsername()) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
 
         if (game.getTeamTurn() != playerColor) {
-            try {
-                session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Not your turn")));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Not your turn")));
             return;
         }
 
@@ -171,18 +172,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
 
         GameData updatedGameData = dataAccess.getGame(info.gameID);
+        ChessGame updatedGame = updatedGameData.game();
+
         String notificationText = info.username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
         connections.broadcast(session, new NotificationMessage(notificationText));
         String otherUsername = info.username.equals(gameData.whiteUsername()) ? updatedGameData.blackUsername() : updatedGameData.whiteUsername();
-        if (updatedGameData.game().getGameState() == ChessGame.GameState.CHECK) {
-            connections.broadcastAll(new NotificationMessage(otherUsername + " is in check."));
-        } else if (updatedGameData.game().getGameState() == ChessGame.GameState.CHECKMATE) {
-            connections.broadcastAll(new NotificationMessage(otherUsername + " is in checkmate. " + info.username + " wins the game!"));
-            dataAccess.getGame(info.gameID).game().setTeamTurn(null);
-        } else if (updatedGameData.game().getGameState() == ChessGame.GameState.STALEMATE) {
-            connections.broadcastAll(new NotificationMessage(otherUsername + " is in stalemate. The game has ended in a draw!"));
-            dataAccess.getGame(info.gameID).game().setTeamTurn(null);
+
+        switch (updatedGame.getGameState()) {
+            case CHECK -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in check."));
+            case CHECKMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in checkmate. " + info.username + " wins the game!"));
+            case STALEMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in stalemate. The game has ended in a draw!"));
         }
+
         connections.broadcastAll(new LoadGameMessage(updatedGameData.game()));
     }
 }
