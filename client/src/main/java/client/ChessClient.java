@@ -242,7 +242,7 @@ public class ChessClient implements NotificationHandler {
             ChessBoard board = gameObserving.game().getBoard();
             state = State.OBSERVING;
             ws.observeGame(authToken, myGameID);
-            return String.format("You are now observing %s\n", gameObserving.gameName()) + drawBoard(ChessGame.TeamColor.WHITE, board, null);
+            return String.format("You are now observing %s\n", gameObserving.gameName());
         } catch (Exception e) {
             return "Unable to observe game. Please enter a valid game number.\n" + help();
         }
@@ -507,5 +507,7 @@ public class ChessClient implements NotificationHandler {
     @Override
     public void error(ErrorMessage errorMessage) {
         System.out.println(EscapeSequences.SET_TEXT_COLOR_RED + errorMessage.errorMessage);
+        System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + help());
+        printPrompt();
     }
 }
