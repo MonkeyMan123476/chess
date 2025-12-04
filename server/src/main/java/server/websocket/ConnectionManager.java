@@ -44,6 +44,15 @@ public class ConnectionManager {
         }
     }
 
+    public void broadcastAll(ServerMessage message) throws IOException {
+        String json = new Gson().toJson(message);
+        for (ConnectionInfo c : connections.values()) {
+            if (c.session.isOpen()) {
+                c.session.getRemote().sendString(json);
+            }
+        }
+    }
+
     public ConnectionInfo get(Session session) {
         return connections.get(session);
     }

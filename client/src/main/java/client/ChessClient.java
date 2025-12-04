@@ -270,7 +270,7 @@ public class ChessClient implements NotificationHandler {
             }
             ChessMove attemptedMove = new ChessMove(oldPosition, newPosition, newType);
             ws.makeMove(authToken, myGameID, attemptedMove);
-            return "Move sent to server. Waiting for confirmation..." + drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), false);
+            return "Move sent to server. Waiting for confirmation...";
         } catch (Exception e) {
             return "Unable to move piece. Please select a valid piece and square to move to.\n" + help();
         }

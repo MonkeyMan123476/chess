@@ -165,6 +165,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData updatedGameData = dataAccess.getGame(info.gameID);
         String notificationText = info.username + " moved from " + move.getStartPosition() + " to " + move.getEndPosition();
         connections.broadcast(session, new NotificationMessage(notificationText));
-        connections.broadcast(session, new LoadGameMessage(updatedGameData.game()));
+        connections.broadcastAll(new LoadGameMessage(updatedGameData.game()));
     }
 }
