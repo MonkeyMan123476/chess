@@ -474,7 +474,9 @@ public class ChessClient implements NotificationHandler {
     @Override
     public void loadGame(LoadGameMessage loadGameMessage) {
         ChessGame.GameState stateOfGame = loadGameMessage.game.getGameState();
-        if (stateOfGame == ChessGame.GameState.CHECKMATE || stateOfGame == ChessGame.GameState.STALEMATE || stateOfGame == ChessGame.GameState.RESIGNED) {
+        if (stateOfGame == ChessGame.GameState.CHECKMATE ||
+                stateOfGame == ChessGame.GameState.STALEMATE ||
+                stateOfGame == ChessGame.GameState.RESIGNED) {
             state = State.GAMEOVER;
         }
         System.out.println(drawBoard(myTeam, loadGameMessage.game.getBoard(), null));

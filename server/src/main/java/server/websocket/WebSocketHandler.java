@@ -216,9 +216,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String otherUsername = info.username.equals(gameData.whiteUsername()) ? updatedGameData.blackUsername() : updatedGameData.whiteUsername();
 
         switch (updatedGame.getGameState()) {
-            case CHECK -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in check."), gameData.gameID());
-            case CHECKMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in checkmate. " + info.username + " wins the game!"), gameData.gameID());
-            case STALEMATE -> connections.broadcastAll(new NotificationMessage(otherUsername + " is in stalemate. The game has ended in a draw!"), gameData.gameID());
+            case CHECK -> connections.broadcastAll(
+                    new NotificationMessage(otherUsername + " is in check."), gameData.gameID()
+            );
+            case CHECKMATE -> connections.broadcastAll(
+                    new NotificationMessage(otherUsername + " is in checkmate. " + info.username + " wins the game!"), gameData.gameID()
+            );
+            case STALEMATE -> connections.broadcastAll(
+                    new NotificationMessage(otherUsername + " is in stalemate. The game has ended in a draw!"), gameData.gameID()
+            );
         }
 
         connections.broadcastAll(new LoadGameMessage(updatedGame), gameData.gameID());
