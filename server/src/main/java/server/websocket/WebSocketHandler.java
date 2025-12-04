@@ -156,7 +156,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
 
         DataAccess dataAccess = new MySqlDataAccess();
-        Gson gson = new Gson();
 
         AuthData authData = dataAccess.getAuth(cmd.getAuthToken());
         if (authData == null) {
@@ -170,7 +169,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         ChessGame game = gameData.game();
 
-        if (game.getGameState() == ChessGame.GameState.CHECKMATE || game.getGameState() == ChessGame.GameState.STALEMATE || game.getGameState() == ChessGame.GameState.RESIGNED) {
+        if (game.getGameState() == ChessGame.GameState.CHECKMATE ||
+                game.getGameState() == ChessGame.GameState.STALEMATE ||
+                game.getGameState() == ChessGame.GameState.RESIGNED) {
 
             session.getRemote().sendString(new Gson().toJson(new ErrorMessage("The game has ended.")));
             return;

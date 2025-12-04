@@ -99,6 +99,7 @@ public class ChessClient implements NotificationHandler {
                     case "help" -> help();
                     case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), null);
                     case "leave" -> leave();
+                    case "highlight" -> highlight();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             } else if (state == State.GAMEPLAY) {
@@ -107,6 +108,7 @@ public class ChessClient implements NotificationHandler {
                     case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), null);
                     case "leave" -> leave();
                     case "resign" -> resign();
+                    case "highlight" -> highlight();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             }
@@ -218,7 +220,6 @@ public class ChessClient implements NotificationHandler {
             GameData gameJoined = server.getGame(gameNumber);
             myGameID = gameJoined.gameID();
             myTeam = team;
-            ChessBoard board = gameJoined.game().getBoard();
             server.joinGame(authToken, gameNumber, team);
             if (gameJoined.game().getGameState() == ChessGame.GameState.CHECKMATE) {
                 state = State.GAMEOVER;
@@ -242,7 +243,6 @@ public class ChessClient implements NotificationHandler {
             GameData gameObserving = server.getGame(gameNumber);
             myGameID = gameObserving.gameID();
             myTeam = null;
-            ChessBoard board = gameObserving.game().getBoard();
             state = State.OBSERVING;
             ws.observeGame(authToken, myGameID);
             return String.format("You are now observing %s\n", gameObserving.gameName());
@@ -318,21 +318,18 @@ public class ChessClient implements NotificationHandler {
         }
     }
 
-    public int columnToInteger (String columnLetter) {
-        return switch (columnLetter) {
-            case "a" -> 1;
-            case "b" -> 2;
-            case "c" -> 3;
-            case "d" -> 4;
-            case "e" -> 5;
-            case "f" -> 6;
-            case "g" -> 7;
-            case "h" -> 8;
-            default -> 0;
-        };
+    public int columnToInteger(String columnLetter) {
+        char c = columnLetter.toLowerCase().charAt(0);
+        if (c < 'a' || c > 'h') return 0;
+        return c - 'a' + 1;
     }
 
     public String help(){
+        String base = """
+                        - Help
+                        - Redraw - show the chess board
+                        - Leave - leave the game
+                        """;
         try {
             if (state == State.SIGNEDOUT) {
                 return """
@@ -351,23 +348,13 @@ public class ChessClient implements NotificationHandler {
                         - Observe - observe a game
                         """;
             } else if (state == State.OBSERVING) {
-                return """
-                        - Help
-                        - Redraw - show the chess board
-                        - Leave - leave the game
-                        """;
+                return base;
             } else if (state == State.GAMEOVER) {
                 return """
                         Game Over
-                        - Help
-                        - Redraw - show the chess board
-                        - Leave - leave the game
-                        """;
+                        """ + base;
             } else if (server.getGame(myGameID).game().getTeamTurn() == myTeam) {
-                return """
-                        - Help
-                        - Redraw - show the chess board
-                        - Leave - leave the game
+                return base + """
                         - Move - make a chess move
                         - Resign - forfeit the game
                         - Highlight - show legal moves
@@ -376,10 +363,7 @@ public class ChessClient implements NotificationHandler {
         } catch (Exception e) {
             return "Client error. Thank you for your patience.\n" + help();
         }
-        return """
-                - Help
-                - Redraw - show the chess board
-                - Leave - leave the game
+        return base + """
                 - Resign - forfeit the game
                 """;
     }
@@ -394,10 +378,7 @@ public class ChessClient implements NotificationHandler {
                 for (int row = 1; row <= 8; row++) {
                     drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
                     for (int col = 8; col >= 1; col--) {
-                        shouldHighlight = false;
-                        if (highlightPosition != null) {
-                            shouldHighlight = shouldHighlightSquare(row, col, highlightPosition);
-                        }
+                        shouldHighlight = highlightPosition != null && shouldHighlightSquare(row, col, highlightPosition);
                         drawnBoard += makeSquare(board, row, col, shouldHighlight);
                     }
                     drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
@@ -409,10 +390,7 @@ public class ChessClient implements NotificationHandler {
                 for (int row = 8; row >= 1; row--) {
                     drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
                     for (int col = 1; col <= 8; col++) {
-                        shouldHighlight = false;
-                        if (highlightPosition != null) {
-                            shouldHighlight = shouldHighlightSquare(row, col, highlightPosition);
-                        }
+                        shouldHighlight = highlightPosition != null && shouldHighlightSquare(row, col, highlightPosition);
                         drawnBoard += makeSquare(board, row, col, shouldHighlight);
                     }
                     drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
@@ -450,14 +428,8 @@ public class ChessClient implements NotificationHandler {
 
     private String whiteColumnLabel() {
         String label = EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + "    ";
-        label += "a" + " \u2003";
-        label += "b" + " \u2003";
-        label += "c" + " \u2003";
-        label += "d" + " \u2003";
-        label += "e" + " \u2003";
-        label += "f" + " \u2003";
-        label += "g" + " \u2003";
-        label += "h" + " \u2003";
+        label += "a" + " \u2003" + "b" + " \u2003" + "c" + " \u2003" + "d" + " \u2003";
+        label += "e" + " \u2003" + "f" + " \u2003" + "g" + " \u2003" + "h" + " \u2003";
         label += "  " + EscapeSequences.RESET_BG_COLOR  + EscapeSequences.RESET_TEXT_COLOR + "\n";
         return label;
     }
@@ -481,40 +453,16 @@ public class ChessClient implements NotificationHandler {
     }
 
     private String pieceIcon(ChessPiece piece) {
-        switch (piece.getPieceType()) {
-            case BISHOP:
-                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    return EscapeSequences.WHITE_BISHOP;
-                }
-                return EscapeSequences.BLACK_BISHOP;
-            case KING:
-                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    return EscapeSequences.WHITE_KING;
-                }
-                return EscapeSequences.BLACK_KING;
-            case KNIGHT:
-                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    return EscapeSequences.WHITE_KNIGHT;
-                }
-                return EscapeSequences.BLACK_KNIGHT;
-            case PAWN:
-                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    return EscapeSequences.WHITE_PAWN;
-                }
-                return EscapeSequences.BLACK_PAWN;
-            case QUEEN:
-                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    return EscapeSequences.WHITE_QUEEN;
-                }
-                return EscapeSequences.BLACK_QUEEN;
-            case ROOK:
-                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                  return EscapeSequences.WHITE_ROOK;
-                }
-                return EscapeSequences.BLACK_ROOK;
-            default:
-                return EscapeSequences.EMPTY;
-        }
+        boolean white = piece.getTeamColor() == ChessGame.TeamColor.WHITE;
+
+        return switch (piece.getPieceType()) {
+            case BISHOP -> white ? EscapeSequences.WHITE_BISHOP : EscapeSequences.BLACK_BISHOP;
+            case KING -> white ? EscapeSequences.WHITE_KING : EscapeSequences.BLACK_KING;
+            case KNIGHT -> white ? EscapeSequences.WHITE_KNIGHT : EscapeSequences.BLACK_KNIGHT;
+            case PAWN -> white ? EscapeSequences.WHITE_PAWN : EscapeSequences.BLACK_PAWN;
+            case QUEEN -> white ? EscapeSequences.WHITE_QUEEN : EscapeSequences.BLACK_QUEEN;
+            case ROOK -> white ? EscapeSequences.WHITE_ROOK : EscapeSequences.BLACK_ROOK;
+        };
     }
 
     @Override
