@@ -131,7 +131,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if (!isPlayer) {
             session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Only players can resign")));
             return;
-            // push
+            // testing push because it failed last time
         }
 
         ChessGame game = gameData.game();
