@@ -91,23 +91,23 @@ public class ChessClient implements NotificationHandler {
             } else if (state == State.GAMEPLAY && server.getGame(myGameID).game().getTeamTurn() == myTeam) {
                 return switch (cmd) {
                     case "help" -> help();
-                    case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), false);
+                    case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), null);
                     case "leave" -> leave();
                     case "move" -> move();
-                    case "highlight" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), true);
+                    case "highlight" -> highlight();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             } else if (state == State.OBSERVING) {
                 return switch (cmd) {
                     case "help" -> help();
-                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), false);
+                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), null);
                     case "leave" -> leave();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             } else if (state == State.GAMEPLAY) {
                 return switch (cmd) {
                     case "help" -> help();
-                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), false);
+                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), null);
                     case "leave" -> leave();
                     //case "resign" -> resign();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
@@ -242,7 +242,7 @@ public class ChessClient implements NotificationHandler {
             ChessBoard board = gameObserving.game().getBoard();
             state = State.OBSERVING;
             ws.observeGame(authToken, myGameID);
-            return String.format("You are now observing %s\n", gameObserving.gameName()) + drawBoard(ChessGame.TeamColor.WHITE, board, false);
+            return String.format("You are now observing %s\n", gameObserving.gameName()) + drawBoard(ChessGame.TeamColor.WHITE, board, null);
         } catch (Exception e) {
             return "Unable to observe game. Please enter a valid game number.\n" + help();
         }
@@ -273,6 +273,23 @@ public class ChessClient implements NotificationHandler {
             return "Move sent to server. Waiting for confirmation...";
         } catch (Exception e) {
             return "Unable to move piece. Please select a valid piece and square to move to.\n" + help();
+        }
+    }
+
+    public String highlight() {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.print("Please enter a chess position (example: a2): ");
+            String moveInput = scanner.nextLine().trim().toLowerCase();
+            if (moveInput.length() < 2) {
+                return "Invalid input. Please enter a position in a format similar to a2.\n" + help();
+            }
+            int pieceColumn = columnToInteger(String.valueOf(moveInput.charAt(0)));
+            int pieceRow = Character.getNumericValue(moveInput.charAt(1));
+            ChessPosition position = new ChessPosition(pieceRow, pieceColumn);
+            return drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), position);
+        } catch (Exception e) {
+            return "Unable to highlight pieces.\n" + help();
         }
     }
 
@@ -342,32 +359,53 @@ public class ChessClient implements NotificationHandler {
     }
 
 
-    private String drawBoard(ChessGame.TeamColor perspective, ChessBoard board, boolean shouldHighlight) {
+    private String drawBoard(ChessGame.TeamColor perspective, ChessBoard board, ChessPosition highlightPosition) {
+        boolean shouldHighlight;
         String drawnBoard = "\n";
-        if (perspective == ChessGame.TeamColor.BLACK) {
-            drawnBoard += blackColumnLabel();
-            for (int row = 1; row <= 8; row++) {
-                drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
-                for (int col = 8; col >= 1; col--) {
-                    drawnBoard += makeSquare(board, row, col, shouldHighlight);
+        try {
+            if (perspective == ChessGame.TeamColor.BLACK) {
+                drawnBoard += blackColumnLabel();
+                for (int row = 1; row <= 8; row++) {
+                    drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
+                    for (int col = 8; col >= 1; col--) {
+                        shouldHighlight = false;
+                        if (highlightPosition != null) {
+                            shouldHighlight = shouldHighlightSquare(row, col, highlightPosition);
+                        }
+                        drawnBoard += makeSquare(board, row, col, shouldHighlight);
+                    }
+                    drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
+                    drawnBoard += EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + "\n";
                 }
-                drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
-                drawnBoard += EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + "\n";
-            }
-            drawnBoard += blackColumnLabel();
-        } else {
-            drawnBoard += whiteColumnLabel();
-            for (int row = 8; row >= 1; row--) {
-                drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
-                for (int col = 1; col <= 8; col++) {
-                    drawnBoard += makeSquare(board, row, col, shouldHighlight);
+                drawnBoard += blackColumnLabel();
+            } else {
+                drawnBoard += whiteColumnLabel();
+                for (int row = 8; row >= 1; row--) {
+                    drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
+                    for (int col = 1; col <= 8; col++) {
+                        shouldHighlight = false;
+                        if (highlightPosition != null) {
+                            shouldHighlight = shouldHighlightSquare(row, col, highlightPosition);
+                        }
+                        drawnBoard += makeSquare(board, row, col, shouldHighlight);
+                    }
+                    drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
+                    drawnBoard += EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + "\n";
                 }
-                drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
-                drawnBoard += EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + "\n";
+                drawnBoard += whiteColumnLabel();
             }
-            drawnBoard += whiteColumnLabel();
+            return drawnBoard + EscapeSequences.SET_TEXT_COLOR_BLUE;
+        } catch (Exception e) {
+            return "Unable to draw board.\n" + help();
         }
-        return drawnBoard + EscapeSequences.SET_TEXT_COLOR_BLUE;
+    }
+
+    private boolean shouldHighlightSquare(int row, int col, ChessPosition position) throws Exception {
+        ChessMove potentialMove = new ChessMove(position, new ChessPosition(row, col), null);
+        if (server.getGame(myGameID).game().validMoves(position).contains(potentialMove)) {
+            return true;
+        }
+        return false;
     }
 
     private String blackColumnLabel() {
@@ -461,7 +499,7 @@ public class ChessClient implements NotificationHandler {
 
     @Override
     public void loadGame(LoadGameMessage loadGameMessage) {
-        System.out.println(drawBoard(myTeam, loadGameMessage.game.getBoard(), false));
+        System.out.println(drawBoard(myTeam, loadGameMessage.game.getBoard(), null));
         System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + help());
         printPrompt();
     }
