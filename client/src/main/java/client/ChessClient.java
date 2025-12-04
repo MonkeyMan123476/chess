@@ -97,7 +97,7 @@ public class ChessClient implements NotificationHandler {
                     case "highlight" -> highlight();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
-            } else if (state == State.OBSERVING) {
+            } else if (state == State.OBSERVING || state == State.GAMEOVER) {
                 return switch (cmd) {
                     case "help" -> help();
                     case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), null);
@@ -223,7 +223,13 @@ public class ChessClient implements NotificationHandler {
             myTeam = team;
             ChessBoard board = gameJoined.game().getBoard();
             server.joinGame(authToken, gameNumber, team);
-            state = State.GAMEPLAY;
+            if (gameJoined.game().getGameState() == ChessGame.GameState.CHECKMATE) {
+                state = State.GAMEOVER;
+            } else if (gameJoined.game().getGameState() == ChessGame.GameState.STALEMATE) {
+                state = State.GAMEOVER;
+            } else {
+                state = State.GAMEPLAY;
+            }
             ws.joinGame(authToken, myGameID);
             return String.format("You joined %s as the %s team\n", gameJoined.gameName(), team);
         } catch (Exception e) {
@@ -331,6 +337,19 @@ public class ChessClient implements NotificationHandler {
                         - Play - join a game
                         - Observe - observe a game
                         """;
+            } else if (state == State.OBSERVING) {
+                return """
+                        - Help
+                        - Redraw - show the chess board
+                        - Leave - leave the game
+                        """;
+            } else if (state == State.GAMEOVER) {
+                return """
+                        Game Over
+                        - Help
+                        - Redraw - show the chess board
+                        - Leave - leave the game
+                        """;
             } else if (server.getGame(myGameID).game().getTeamTurn() == myTeam) {
                 return """
                         - Help
@@ -339,12 +358,6 @@ public class ChessClient implements NotificationHandler {
                         - Move - make a chess move
                         - Resign - forfeit the game
                         - Highlight - show legal moves
-                        """;
-            } else if (state == State.OBSERVING) {
-                return """
-                        - Help
-                        - Redraw - show the chess board
-                        - Leave - leave the game
                         """;
             }
         } catch (Exception e) {
@@ -499,6 +512,10 @@ public class ChessClient implements NotificationHandler {
 
     @Override
     public void loadGame(LoadGameMessage loadGameMessage) {
+        ChessGame.GameState stateOfGame = loadGameMessage.game.getGameState();
+        if (stateOfGame == ChessGame.GameState.CHECKMATE || stateOfGame == ChessGame.GameState.STALEMATE) {
+            state = State.GAMEOVER;
+        }
         System.out.println(drawBoard(myTeam, loadGameMessage.game.getBoard(), null));
         System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + help());
         printPrompt();
