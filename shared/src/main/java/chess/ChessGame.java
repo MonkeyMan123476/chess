@@ -14,6 +14,7 @@ import java.util.Objects;
 public class ChessGame {
 
     TeamColor teamTurn = TeamColor.WHITE;
+    GameState gameState = GameState.PLAYING;
     ChessBoard myBoard = new ChessBoard();
     public ChessGame() {
         this.myBoard.resetBoard();
@@ -57,6 +58,12 @@ public class ChessGame {
         BLACK
     }
 
+    public enum GameState {
+        PLAYING,
+        CHECKMATE,
+        STALEMATE
+    }
+
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -90,6 +97,11 @@ public class ChessGame {
             throw new InvalidMoveException("Not this team's turn");
         } else if (validMoves(move.getStartPosition()) != null && validMoves(move.getStartPosition()).contains(move)) {
             movePiece(getBoard().getPiece(move.getStartPosition()), move.getStartPosition(), move.getEndPosition(), move.getPromotionPiece());
+            if (isInCheckmate(getTeamTurn())) {
+                gameState = GameState.CHECKMATE;
+            } else if (isInStalemate(getTeamTurn())) {
+                gameState = GameState.STALEMATE;
+            }
         } else if (willBeInCheck(move)){
             throw new InvalidMoveException("King may not remain in check");
         } else {
@@ -172,7 +184,7 @@ public class ChessGame {
         // Switch turns
         if (getTeamTurn() == TeamColor.WHITE) {
             teamTurn = TeamColor.BLACK;
-        } else {
+        } else if (getTeamTurn() == TeamColor.BLACK){
             teamTurn = TeamColor.WHITE;
         }
     }

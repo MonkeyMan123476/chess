@@ -91,22 +91,23 @@ public class ChessClient implements NotificationHandler {
             } else if (state == State.GAMEPLAY && server.getGame(myGameID).game().getTeamTurn() == myTeam) {
                 return switch (cmd) {
                     case "help" -> help();
-                    case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard());
+                    case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), false);
                     case "leave" -> leave();
                     case "move" -> move();
+                    case "highlight" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), true);
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             } else if (state == State.OBSERVING) {
                 return switch (cmd) {
                     case "help" -> help();
-                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard());
+                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), false);
                     case "leave" -> leave();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
                 };
             } else if (state == State.GAMEPLAY) {
                 return switch (cmd) {
                     case "help" -> help();
-                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard());
+                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), false);
                     case "leave" -> leave();
                     //case "resign" -> resign();
                     default -> "♕ Type Help to see what actions you can take." + EscapeSequences.WHITE_QUEEN + "\n";
@@ -241,7 +242,7 @@ public class ChessClient implements NotificationHandler {
             ChessBoard board = gameObserving.game().getBoard();
             state = State.OBSERVING;
             ws.observeGame(authToken, myGameID);
-            return String.format("You are now observing %s\n", gameObserving.gameName()) + drawBoard(ChessGame.TeamColor.WHITE, board);
+            return String.format("You are now observing %s\n", gameObserving.gameName()) + drawBoard(ChessGame.TeamColor.WHITE, board, false);
         } catch (Exception e) {
             return "Unable to observe game. Please enter a valid game number.\n" + help();
         }
@@ -262,9 +263,14 @@ public class ChessClient implements NotificationHandler {
             ChessPosition oldPosition = new ChessPosition(pieceRow, pieceColumn);
             ChessPiece movingPiece = server.getGame(myGameID).game().getBoard().getPiece(oldPosition);
             ChessPosition newPosition = new ChessPosition(positionRow, positionColumn);
-            ChessMove attemptedMove = new ChessMove(oldPosition, newPosition, null);
+            ChessPiece.PieceType newType = null;
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN && (newPosition.getRow() == 1 || newPosition.getRow() == 8)) {
+                System.out.println("How would you like to promote your pawn? (Queen, Knight, Rook, or Bishop): ");
+                newType = ChessPiece.PieceType.valueOf(scanner.nextLine().toUpperCase());
+            }
+            ChessMove attemptedMove = new ChessMove(oldPosition, newPosition, newType);
             ws.makeMove(authToken, myGameID, attemptedMove);
-            return "Move sent to server. Waiting for confirmation..." + drawBoard(myTeam, server.getGame(myGameID).game().getBoard());
+            return "Move sent to server. Waiting for confirmation..." + drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), false);
         } catch (Exception e) {
             return "Unable to move piece. Please select a valid piece and square to move to.\n" + help();
         }
@@ -336,14 +342,14 @@ public class ChessClient implements NotificationHandler {
     }
 
 
-    private String drawBoard(ChessGame.TeamColor perspective, ChessBoard board) {
+    private String drawBoard(ChessGame.TeamColor perspective, ChessBoard board, boolean shouldHighlight) {
         String drawnBoard = "\n";
         if (perspective == ChessGame.TeamColor.BLACK) {
             drawnBoard += blackColumnLabel();
             for (int row = 1; row <= 8; row++) {
                 drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
                 for (int col = 8; col >= 1; col--) {
-                    drawnBoard += makeSquare(board, row, col);
+                    drawnBoard += makeSquare(board, row, col, shouldHighlight);
                 }
                 drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
                 drawnBoard += EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + "\n";
@@ -354,7 +360,7 @@ public class ChessClient implements NotificationHandler {
             for (int row = 8; row >= 1; row--) {
                 drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
                 for (int col = 1; col <= 8; col++) {
-                    drawnBoard += makeSquare(board, row, col);
+                    drawnBoard += makeSquare(board, row, col, shouldHighlight);
                 }
                 drawnBoard += EscapeSequences.SET_BG_COLOR_MAGENTA + EscapeSequences.SET_TEXT_COLOR_BLACK + " " + row + " ";
                 drawnBoard += EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + "\n";
@@ -392,10 +398,13 @@ public class ChessClient implements NotificationHandler {
         return label;
     }
 
-    private String makeSquare(ChessBoard board, int row, int col) {
+    private String makeSquare(ChessBoard board, int row, int col, boolean shouldHighlight) {
         String chessSquare = "";
         boolean isWhiteSquare = !((row + col) % 2 == 0);
         String bgColor = isWhiteSquare ? EscapeSequences.SET_BG_COLOR_WHITE : EscapeSequences.SET_BG_COLOR_BLUE;
+        if (shouldHighlight) {
+            bgColor = isWhiteSquare ? EscapeSequences.SET_BG_COLOR_GREEN : EscapeSequences.SET_BG_COLOR_DARK_GREEN;
+        }
         ChessPiece piece = board.getPiece(new ChessPosition(row, col));
         chessSquare += bgColor + EscapeSequences.SET_TEXT_COLOR_BLACK;
         if (piece != null) {
@@ -452,7 +461,7 @@ public class ChessClient implements NotificationHandler {
 
     @Override
     public void loadGame(LoadGameMessage loadGameMessage) {
-        System.out.println(drawBoard(myTeam, loadGameMessage.game.getBoard()));
+        System.out.println(drawBoard(myTeam, loadGameMessage.game.getBoard(), false));
         System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + help());
         printPrompt();
     }
