@@ -105,7 +105,7 @@ public class ChessClient implements NotificationHandler {
             } else if (state == State.GAMEPLAY) {
                 return switch (cmd) {
                     case "help" -> help();
-                    case "redraw" -> drawBoard(ChessGame.TeamColor.WHITE, server.getGame(myGameID).game().getBoard(), null);
+                    case "redraw" -> drawBoard(myTeam, server.getGame(myGameID).game().getBoard(), null);
                     case "leave" -> leave();
                     case "resign" -> resign();
                     case "highlight" -> highlight();
@@ -350,7 +350,9 @@ public class ChessClient implements NotificationHandler {
                         - Observe - observe a game
                         """;
             } else if (state == State.OBSERVING) {
-                return base;
+                return base + """
+                        - Highlight - show legal moves
+                        """;
             } else if (state == State.GAMEOVER) {
                 return """
                         Game Over
@@ -366,6 +368,7 @@ public class ChessClient implements NotificationHandler {
             return "Client error. Thank you for your patience.\n" + help();
         }
         return base + """
+                - Highlight - show legal moves
                 - Resign - forfeit the game
                 """;
     }
